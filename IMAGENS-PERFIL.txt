@@ -1,0 +1,84 @@
+IMAGENS DE PERFIL - INSTRUÇÕES FINAIS
+====================================
+
+LOCAL PARA COLOCAR AS IMAGENS:
+==============================
+
+Pasta: c:\Users\carlo\OneDrive\Documentos\BOT HZ\site\images\
+
+DOIS ARQUIVOS NECESSÁRIOS:
+==========================
+
+1. PERFIL MASCULINO
+   Nome do arquivo: doctor-male.png
+   Tipo: Foto do médico (branco com estetoscópio)
+   Dimensões: 120x120px ou maior (será redimensionado)
+   Formato: PNG (importante)
+   Usado por: Usuários que selecionarem "Homem" no registro
+
+2. PERFIL FEMININO
+   Nome do arquivo: nurse-female.png
+   Tipo: Foto da enfermeira (turquesa/verde com máscara)
+   Dimensões: 120x120px ou maior (será redimensionado)
+   Formato: PNG (importante)
+   Usado por: Usuárias que selecionarem "Mulher" no registro
+
+COMO ADICIONAR AS IMAGENS:
+===========================
+
+Opção 1: Direct Copy (mais simples)
+- Tenha as imagens salvas (.png)
+- Acesse: C:\Users\carlo\OneDrive\Documentos\BOT HZ\site\images\
+- Copie os arquivos lá
+- Renomear para: doctor-male.png e nurse-female.png
+
+Opção 2: Via navegador
+- Tiro screenshot das imagens do chat
+- Clique direito → Salvar imagem como
+- Salve em: site\images\
+- Com os nomes exatos
+
+VERIFICAÇÃO:
+============
+
+Após adicionar as imagens, a pasta deverá ter:
+
+C:\Users\carlo\OneDrive\Documentos\BOT HZ\site\images\
+├── doctor-male.png        ← NOVO
+├── nurse-female.png       ← NOVO
+├── logo_new.png
+├── 1773721088505~3.png
+└── README.txt
+
+FUNCIONAMENTO:
+==============
+
+Quando um usuário se registrar:
+- Sexo "Homem" → Carrega doctor-male.png como avatar
+- Sexo "Mulher" → Carrega nurse-female.png como avatar
+
+Onde aparecerão as imagens:
+1. Página "Minha Conta" - Avatar circular no topo
+2. Exemplos de perfil (perfil-masculino.html e perfil-feminino.html)
+
+FALLBACK:
+=========
+
+Se a imagem não existir ou der erro:
+- Usará logo_new.png como substituto
+- Sistema continua funcionando normalmente
+
+PÁGINAS DE EXEMPLO:
+===================
+
+Criei duas páginas para você ver os exemplos:
+
+1. perfil-masculino.html
+   - Mostra como ficará o perfil de um usuário masculino
+   - Com avatar, cards de informações, etc
+
+2. perfil-feminino.html
+   - Mostra como ficará o perfil de uma usuária feminina
+   - Com avatar, cards de informações, etc
+
+Abra no navegador para visualizar: painel.html → Clique em "Minha Conta" → Depois você pode acessar os exemplos

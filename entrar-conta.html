@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrar na Conta | Painel Horizon</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+body{margin:0; font-family:Arial,sans-serif; background:#0b1320; color:white; padding:20px;}
+*{box-sizing:border-box;}
+.container{max-width:700px; margin:0 auto;}
+.header{display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;}
+.header h1{margin:0; font-size:28px; color:#e8f2ff;}
+.header button{background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.15); color:#e8f2ff; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:600;}
+.header button:hover{background:rgba(255,255,255,.1);}
+.user-info{background:rgba(15,27,57,.5); border:1px solid rgba(255,255,255,.15); border-radius:12px; padding:25px; margin-bottom:25px; text-align:center;}
+.user-avatar{width:80px; height:80px; border-radius:50%; border:3px solid #2f86ff; margin:0 auto 15px; object-fit:cover;}
+.user-name{font-size:24px; font-weight:bold; color:#e8f2ff; margin:10px 0;}
+.user-role{color:#96a4c4; font-size:.95rem;}
+.account-details{background:rgba(15,27,57,.5); border:1px solid rgba(255,255,255,.15); border-radius:12px; padding:20px; margin-bottom:25px;}
+.account-details h3{margin:0 0 15px; color:#90c5ff; text-transform:uppercase; font-size:.9rem;}
+.detail-row{display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.1);}
+.detail-row:last-child{border-bottom:none;}
+.detail-label{color:#96a4c4;}
+.detail-value{color:#e8f2ff; font-weight:500;}
+.info-banner{background:rgba(33,150,243,.1); border-left:4px solid #2196f3; padding:12px; border-radius:6px; margin-bottom:20px; color:#81d4fa;}
+.action-buttons{display:flex; gap:15px; margin-top:30px;}
+.btn-action{flex:1; padding:14px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:.95rem; transition:all .3s;}
+.btn-exit{background:#2196f3; color:white;}
+.btn-exit:hover{background:#1976d2;}
+.btn-back{background:rgba(255,255,255,.05); color:#e8f2ff; border:1px solid rgba(255,255,255,.15);}
+.btn-back:hover{background:rgba(255,255,255,.1);}
+@media (max-width:600px){ .user-avatar{width:60px; height:60px;} .user-name{font-size:20px;} }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header-logo">
+    <a href="painel.html" class="logo-link">
+      <img src="images/logo_new.png" alt="Logo" class="header-logo">
+    </a>
+  </div>
+  
+  <div class="header">
+    <h1>👤 Sessão do Usuário</h1>
+    <button onclick="window.location.href='registros.html'">← Voltar</button>
+  </div>
+
+  <div class="info-banner">
+    ℹ️ Você está visualizando a conta como: <strong id="account-name-banner">-</strong>
+  </div>
+
+  <div class="user-info">
+    <img id="user-avatar" src="images/doctor-male.jpeg" alt="Avatar" class="user-avatar" onerror="this.src='images/logo_new.png'" />
+    <div class="user-name" id="user-name">-</div>
+    <div class="user-role" id="user-role">-</div>
+  </div>
+
+  <div class="account-details">
+    <h3>📋 Detalhes da Conta</h3>
+    <div class="detail-row">
+      <span class="detail-label">Nome de Usuário:</span>
+      <span class="detail-value" id="detail-username">-</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Cargo:</span>
+      <span class="detail-value" id="detail-role">-</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Gênero:</span>
+      <span class="detail-value" id="detail-gender">-</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Servidor:</span>
+      <span class="detail-value" id="detail-server">-</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Data de Registro:</span>
+      <span class="detail-value" id="detail-date">-</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Discord:</span>
+      <span class="detail-value" id="detail-discord">-</span>
+    </div>
+  </div>
+
+  <div class="action-buttons">
+    <button class="btn-action btn-back" onclick="sairDaConta()">SAIR DA CONTA</button>
+    <button class="btn-action btn-exit" onclick="irParaPagePainel()">➜ IR PARA PAINEL</button>
+  </div>
+</div>
+
+<script>
+const accountId = sessionStorage.getItem('enterAccountId');
+let originalUser = sessionStorage.getItem('loggedUser');
+
+if(!accountId){
+  window.location.href = 'registros.html';
+}
+
+// Não permitir entrar na própria conta
+if(accountId === originalUser){
+  alert('Você não pode entrar em sua própria conta!');
+  window.location.href = 'registros.html';
+}
+
+let contaDados = null;
+
+function carregarConta(){
+  const contas = JSON.parse(localStorage.getItem('accounts') || '[]');
+  contaDados = contas.find(c => c.username === accountId);
+  
+  if(!contaDados){
+    alert('Conta não encontrada!');
+    window.location.href = 'registros.html';
+    return;
+  }
+  
+  // Atualizar sessão para a conta do usuário - REALMENTE FAZER LOGIN
+  sessionStorage.setItem('loggedUser', accountId);
+  sessionStorage.setItem('originalUser', originalUser);
+  
+  // Carregar dados
+  const avatar = contaDados.gender === 'feminino' ? 'images/nurse-female.jpeg' : 'images/doctor-male.jpeg';
+  document.getElementById('user-avatar').src = avatar;
+  document.getElementById('user-name').textContent = contaDados.username;
+  document.getElementById('user-role').textContent = contaDados.role || 'Cargo em definição';
+  document.getElementById('account-name-banner').textContent = `${originalUser} → ${contaDados.username}`;
+  
+  document.getElementById('detail-username').textContent = contaDados.username;
+  document.getElementById('detail-role').textContent = contaDados.role || 'Indefinido';
+  document.getElementById('detail-gender').textContent = contaDados.gender === 'feminino' ? 'Feminino' : 'Masculino';
+  document.getElementById('detail-server').textContent = contaDados.server;
+  document.getElementById('detail-date').textContent = new Date(contaDados.registeredAt).toLocaleDateString('pt-BR');
+  document.getElementById('detail-discord').textContent = contaDados.discord || 'Não vinculado';
+}
+
+function sairDaConta(){
+  if(confirm('Sair da sessão do usuário e voltar à sua conta?')){
+    const original = sessionStorage.getItem('originalUser') || originalUser;
+    sessionStorage.setItem('loggedUser', original);
+    sessionStorage.removeItem('originalUser');
+    sessionStorage.removeItem('enterAccountId');
+    window.location.href = 'registros.html';
+  }
+}
+
+function irParaPagePainel(){
+  // Agora que está logado como o outro usuário, vai para o painel dele
+  window.location.href = 'painel.html';
+}
+
+carregarConta();
+</script>
+</body>
+</html>

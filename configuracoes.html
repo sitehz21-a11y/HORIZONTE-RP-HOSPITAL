@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configurações | Painel Sistema Hospital</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="bg"></div>
+<div class="main">
+  <div class="page-header">
+    <h1>Configurações</h1>
+    <p>Ajuste opções gerais do painel e preferências do sistema.</p>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <h3>Perfil do Hospital</h3>
+      <p>Modifique nome, descrição e canais padrão.</p>
+      <button class="btn btn-primary" onclick="alert('Futuro recurso: editar perfil do hospital');">Editar Perfil</button>
+    </div>
+    <div class="card">
+      <h3>Segurança</h3>
+      <p>Gerencie autenticação, bloqueios e palavras proibidas.</p>
+      <button class="btn btn-primary" onclick="alert('Futuro recurso: segurança');">Configurar</button>
+    </div>
+    <div class="card">
+      <h3>Notificações</h3>
+      <p>Defina notificações para eventos críticos.</p>
+      <button class="btn btn-primary" onclick="alert('Futuro recurso: notificações');">Ajustar</button>
+    </div>
+    <div class="card" style="border-left:4px solid #ff6b6b; background:rgba(255,100,100,.08);">
+      <h3 style="color:#ff6b6b;">⚠️ Reset do Sistema</h3>
+      <p>Excluir todas as contas criadas no site. <strong>Esta ação é irreversível!</strong></p>
+      <button class="btn btn-primary" onclick="window.location.href='reset-admin.html'" style="background:#ff6b6b;">Acessar Reset</button>
+    </div>
+  </div>
+
+  <footer class="watermark-foot">2026 © Horizonte Roleplay Hospital - UCP desenvolvido por Criarp</footer>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

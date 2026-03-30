@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Excluir Conta | Painel Horizon</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+body{margin:0; font-family:Arial,sans-serif; background:#0b1320; color:white; padding:20px;}
+.container{max-width:600px; margin:0 auto; display:flex; flex-direction:column; min-height:calc(100vh - 40px);}
+.delete-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;}
+.delete-header h1{margin:0; font-size:28px; color:#e8f2ff;}
+.delete-header button{background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.15); color:#e8f2ff; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:600;}
+.delete-header button:hover{background:rgba(255,255,255,.1);}
+.danger-card{background:linear-gradient(135deg, rgba(255,107,107,.15) 0%, rgba(255,107,107,.05) 100%); border:2px solid rgba(255,107,107,.3); border-radius:12px; padding:30px; margin:30px 0; text-align:center;}
+.danger-icon{font-size:64px; margin-bottom:20px;}
+.danger-title{font-size:24px; font-weight:bold; color:#ff6b6b; margin-bottom:15px;}
+.danger-message{color:#ffb3b3; margin-bottom:20px; line-height:1.6;}
+.danger-warning{background:rgba(255,107,107,.2); border-left:4px solid #ff6b6b; padding:15px; border-radius:6px; margin:20px 0; color:#ffcccc; font-size:.95rem;}
+.account-info{background:rgba(15,27,57,.5); border:1px solid rgba(255,255,255,.15); border-radius:12px; padding:20px; margin:30px 0;}
+.account-info h3{margin:0 0 15px; color:#90c5ff; text-transform:uppercase; font-size:.9rem;}
+.info-row{display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.1);}
+.info-row:last-child{border-bottom:none;}
+.info-label{color:#96a4c4;}
+.info-value{color:#e8f2ff; font-weight:500;}
+.confirmation{margin:30px 0;}
+.confirmation label{display:flex; align-items:center; gap:10px; cursor:pointer; margin:15px 0; color:#bddcff;}
+.confirmation input[type="checkbox"]{width:20px; height:20px; cursor:pointer;}
+.action-buttons{display:flex; gap:15px; margin-top:auto;}
+.btn-action{flex:1; padding:14px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:.95rem; transition:all .3s;}
+.btn-delete{background:#ff6b6b; color:white;}
+.btn-delete:hover:not(:disabled){background:#ff5252;}
+.btn-delete:disabled{background:#99999950; cursor:not-allowed;}
+.btn-cancel{background:rgba(255,255,255,.05); color:#e8f2ff; border:1px solid rgba(255,255,255,.15);}
+.btn-cancel:hover{background:rgba(255,255,255,.1);}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header-logo">
+    <a href="painel.html" class="logo-link">
+      <img src="images/logo_new.png" alt="Logo" class="header-logo">
+    </a>
+  </div>
+  
+  <div class="delete-header">
+    <h1>🗑️ Excluir Conta</h1>
+    <button onclick="window.location.href='registros.html'">← Voltar</button>
+  </div>
+
+  <div class="danger-card">
+    <div class="danger-icon">⚠️</div>
+    <div class="danger-title">AÇÃO IRREVERSÍVEL!</div>
+    <div class="danger-message">
+      Ao confirmar, a conta será completamente deletada do banco de dados.<br>
+      <strong>Todas as informações serão perdidas permanentemente.</strong>
+    </div>
+  </div>
+
+  <div class="account-info">
+    <h3>📋 Informações da Conta</h3>
+    <div class="info-row">
+      <span class="info-label">Nome:</span>
+      <span class="info-value" id="account-name">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Cargo:</span>
+      <span class="info-value" id="account-role">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Discord:</span>
+      <span class="info-value" id="account-discord">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Criada em:</span>
+      <span class="info-value" id="account-date">-</span>
+    </div>
+  </div>
+
+  <div class="danger-warning">
+    ⚡ Esta ação não pode ser desfeita. Todos os dados da conta, incluindo histórico de login e informações pessoais, serão permanentemente removidos do sistema.
+  </div>
+
+  <div class="confirmation">
+    <label>
+      <input type="checkbox" id="confirm-delete" />
+      Entendo que isto é uma ação permanente e irreversível
+    </label>
+    <label>
+      <input type="checkbox" id="confirm-clear" />
+      Eu confirmo que desejo deletar esta conta completamente
+    </label>
+  </div>
+
+  <div class="action-buttons">
+    <button class="btn-action btn-cancel" onclick="cancelar()">CANCELAR</button>
+    <button class="btn-action btn-delete" id="btn-delete" onclick="confirmarExclusao()" disabled>EXCLUIR PERMANENTEMENTE</button>
+  </div>
+</div>
+
+<script>
+const accountId = sessionStorage.getItem('deleteAccountId');
+if(!accountId) window.location.href = 'registros.html';
+
+let contaDados = null;
+
+function carregarConta(){
+  const contas = JSON.parse(localStorage.getItem('accounts') || '[]');
+  contaDados = contas.find(c => c.username === accountId);
+  
+  if(!contaDados){
+    alert('Conta não encontrada!');
+    window.location.href = 'registros.html';
+    return;
+  }
+  
+  document.getElementById('account-name').textContent = contaDados.username;
+  document.getElementById('account-role').textContent = contaDados.role || 'Indefinido';
+  document.getElementById('account-discord').textContent = contaDados.discord || 'Não vinculado';
+  document.getElementById('account-date').textContent = new Date(contaDados.registeredAt).toLocaleDateString('pt-BR');
+}
+
+document.getElementById('confirm-delete').addEventListener('change', verificarConfirmacao);
+document.getElementById('confirm-clear').addEventListener('change', verificarConfirmacao);
+
+function verificarConfirmacao(){
+  const canDelete = document.getElementById('confirm-delete').checked && 
+                    document.getElementById('confirm-clear').checked;
+  document.getElementById('btn-delete').disabled = !canDelete;
+}
+
+function cancelar(){
+  if(confirm('Cancelar exclusão?')){
+    sessionStorage.removeItem('deleteAccountId');
+    window.location.href = 'registros.html';
+  }
+}
+
+function confirmarExclusao(){
+  let contas = JSON.parse(localStorage.getItem('accounts') || '[]');
+  const indexConta = contas.findIndex(c => c.username === accountId);
+  
+  if(indexConta === -1){
+    alert('Conta não encontrada!');
+    return;
+  }
+  
+  // Remove a conta
+  contas.splice(indexConta, 1);
+  localStorage.setItem('accounts', JSON.stringify(contas));
+  
+  alert('✅ Conta excluída permanentemente!');
+  sessionStorage.removeItem('deleteAccountId');
+  window.location.href = 'registros.html';
+}
+
+carregarConta();
+</script>
+</body>
+</html>

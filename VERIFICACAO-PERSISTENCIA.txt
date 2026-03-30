@@ -1,0 +1,101 @@
+VERIFICAÇÃO DE PERSISTÊNCIA DE CONTAS
+====================================
+
+COMO FUNCIONA:
+==============
+
+1. REGISTRO DE CONTA
+   - Quando você cria uma conta, os dados são salvos em localStorage
+   - localStorage é um armazenamento do navegador que persiste mesmo após fechar/reabrir
+   - Arquivo de contas: localStorage['accounts']
+   - Arquivo de logs: localStorage['accountLogs']
+
+2. LOGIN
+   - Ao fazer login:
+     a) Verifica se a conta existe em localStorage
+     b) Valida a senha
+     c) Salva em sessionStorage['loggedUser'] (sessão ativa)
+   - Se você desconectar, a sessionStorage é limpa
+   - MAS localStorage continua intacto (contas permanecem)
+
+3. DESCONECTAR
+   - Remove apenas: sessionStorage['loggedUser']
+   - Mantém: localStorage['accounts'] e localStorage['accountLogs']
+   - Resultado: você pode fazer login novamente com a mesma conta
+
+TESTE DE PERSISTÊNCIA:
+======================
+
+Passo 1: Registrar uma conta
+- Preencha os dados (username, senha, sexo)
+- Clique em "CRIAR CONTA"
+- Confirme o registro
+
+Passo 2: Fazer login
+- Use os mesmos dados (username, senha)
+- Deve entrar no painel normalmente
+
+Passo 3: Desconectar
+- Clique em "DESCONECTAR" em "Minha Conta"
+- Será redirecionado para login
+
+Passo 4: Verificar persistência
+- Volte para a página de login
+- Digite o username e senha da conta criada
+- Deve conseguir fazer login novamente
+- A conta continuará existindo
+
+OBS: localStorage persiste até que você:
+- Limpe os dados do navegador (Ctrl+Shift+Delete)
+- Desinstale o navegador
+- Ou execute um comando específico
+
+Se você abrir o DevTools (F12), pode verificar:
+- Application → Local Storage → seu site
+- Verá as contas salvas em formato JSON
+
+ESTRUTURA DE DADOS SALVA:
+==========================
+
+localStorage['accounts'] = [
+  {
+    username: "seu_usuario",
+    password: "sua_senha",
+    server: "Servidor 1",
+    gender: "masculino" ou "feminino",
+    discord: "seu_discord",
+    registeredAt: "2026-03-20T10:30:00.000Z",
+    rg: "12345678-90" (gerado automaticamente)
+  }
+]
+
+localStorage['accountLogs'] = [
+  {
+    action: "register" ou "login",
+    user: "seu_usuario",
+    server: "Servidor 1",
+    timestamp: "2026-03-20T10:30:00.000Z"
+  }
+]
+
+SEGURANÇA:
+==========
+
+⚠️ AVISO: localStorage não é criptografado!
+- Las senhas são armazenadas em texto plano
+- Isso é apenas para desenvolvimento/teste
+- Em produção, use um servidor backend com hashing de senhas
+
+Para uso em produção:
+- Crie um servidor (Node.js, PHP, etc)
+- Use autenticação JWT
+- Criptografe as senhas com bcrypt ou argon2
+- Nunca confie em apenas localStorage
+
+VERIFICAÇÃO RÁPIDA:
+===================
+
+Abra o console (F12) e execute:
+console.log(JSON.parse(localStorage.getItem('accounts')))
+
+Deve mostrar todas as contas registradas.

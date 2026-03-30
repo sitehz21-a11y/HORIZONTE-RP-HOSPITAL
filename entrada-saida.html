@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrada e Saída | Sistema Hospital</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+body{margin:0; font-family:Arial,sans-serif; background:#0b1320; color:white;}
+.bg{position:fixed; top:0; left:0; width:100%; height:100%; background:transparent; z-index:-1;}
+.main{margin-left:250px; padding:30px; display:flex; flex-direction:column; min-height:100vh;}
+.page-header{margin-bottom:16px;}
+.page-header h1{margin:0; font-size:2rem; color:#eaf1ff;}
+.page-header p{margin-top:8px; color:#a4b9d8;}
+.grid-layout{display:grid; grid-template-columns:1.1fr .9fr; gap:18px;}
+.card{background:linear-gradient(145deg, rgba(14,23,40,.92) 0%, rgba(21,34,57,.95) 100%); border:1px solid rgba(121,169,255,.18); border-radius:14px; box-shadow:0 20px 45px -20px rgba(0,0,0,.64); backdrop-filter: blur(6px);}
+.card h2{margin:0 0 14px; color:#b3cdf8; font-size:1.3rem;}
+.card p{color:#abbedf; margin-top:0; margin-bottom:14px;}
+.section-inner{padding:20px;}
+.field{margin-bottom:14px;}
+.field label{display:block; color:#ddebff; font-weight:600; margin-bottom:6px;}
+.field input[type=text], .field input[type=number], .field input[type=color], .field select, .field textarea{width:100%; border:1px solid rgba(148,189,255,.3); border-radius:8px; background:rgba(14,23,38,.85); color:#eff7ff; padding:10px 11px; font-size:.95rem; outline:none; transition:.2s;}
+.field input:focus, .field select:focus, .field textarea:focus{border-color:#5e9bff; box-shadow:0 0 0 2px rgba(75,132,255,.25);}
+.field textarea{min-height:90px; resize:vertical;}
+.inline-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+.toggle-wrap{display:flex; align-items:center; justify-content:space-between; background:rgba(15,26,43,.65); border:1px solid rgba(128,175,255,.2); border-radius:10px; padding:12px 14px; margin-bottom:14px;}
+.toggle-wrap span{color:#e2efff; font-weight:600;}
+.toggle-wrap input[type=checkbox]{width:20px; height:20px;}
+.btn-row{display:flex; gap:12px; flex-wrap:wrap; margin-top:12px;}
+.btn{cursor:pointer; border:none; border-radius:8px; padding:11px 15px; font-weight:700; font-size:.92rem; transition:.25s;}
+.btn-primary{background:#3a80ff; color:white;}
+.btn-primary:hover{background:#5c99ff;}
+.btn-secondary{background:rgba(255,255,255,.08); color:#d9ecff; border:1px solid rgba(255,255,255,.18);}
+.btn-secondary:hover{background:rgba(255,255,255,.14);}
+.preview-box{background:rgba(10,18,30,.82); border:1px solid rgba(96,141,255,.35); border-radius:12px; padding:16px; min-height:260px; display:flex; flex-direction:column; gap:12px;}
+.preview-box header{display:flex; align-items:center; justify-content:space-between;}
+.preview-box header h3{margin:0; color:#a9c9ff; font-size:1.05rem;}
+.preview-message{background:rgba(18,35,62,.85); border:1px solid rgba(113,162,255,.3); border-radius:10px; padding:14px; min-height:80px; color:#e5f1ff; font-size:.96rem;}
+.tag{display:inline-flex; align-items:center; gap:8px; background:rgba(38,78,138,.8); border:1px solid rgba(108,163,255,.4); border-radius:999px; padding:6px 10px; color:#d5e6ff; font-size:.80rem;}
+.template-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(116px,1fr)); gap:10px; margin:10px 0 12px;}
+.template-card{border:1px solid rgba(110,163,255,.24); background:rgba(12,20,34,.72); border-radius:10px; padding:8px; cursor:pointer; transition:transform .2s, box-shadow .2s;}
+.template-card:hover{transform:translateY(-3px); box-shadow:0 8px 20px rgba(40,120,255,.35);}
+.template-card.active{box-shadow:0 0 0 2px rgba(75,158,255,.85); border-color:#64a8ff;}
+.template-card img{width:100%; height:76px; object-fit:cover; border-radius:7px; margin-bottom:8px;}
+.template-card h4{margin:0; font-size:.85rem; color:#ddedff; line-height:1.2;}
+.template-card small{color:#a2bfdd;}
+.color-palette{display:grid; grid-template-columns:repeat(8,1fr); gap:6px; margin-top:8px;}
+.color-palette button{width:100%; height:26px; border:1px solid rgba(255,255,255,.25); border-radius:4px; cursor:pointer; transition:.2s;}
+.color-palette button:hover{transform:scale(1.05); border-color:#8bcbff;}
+.colors-wrap{margin-top:8px;}
+.preview-discord{background:#0f172a; border:1px solid rgba(93,147,255,.35); border-radius:14px; padding:12px; box-shadow:0 18px 40px rgba(0,0,0,.35); animation:popIn .35s ease-out forwards;}
+.discord-header{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+.discord-header .avatar{width:42px; height:42px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,.1);}
+.discord-header .user-info{line-height:1.1;}
+.discord-header .user-info strong{color:#e8efff; font-size:1rem;}
+.discord-header small{color:#8ea4d2;}
+.discord-embed{background:#111f3a; border-left:4px solid #2f92ff; border-radius:10px; padding:10px;}
+.discord-embed strong{color:#b6cff4; display:block; margin-bottom:4px;}
+.discord-embed p{color:#d8e7ff; margin:4px 0;}
+.discord-embed img{width:100%; border-radius:8px; margin-top:8px; border:1px solid rgba(255,255,255,.12);}
+.discord-embed .footer{display:flex; align-items:center; justify-content:space-between; margin-top:8px; color:#9fb3d9; font-size:.83rem;}
+.toast-fade{opacity:0; transform:translateY(5px); animation:toastShow .4s forwards;}
+@keyframes popIn{from{opacity:0; transform:scale(0.98);}to{opacity:1; transform:scale(1);}}
+@keyframes toastShow{from{opacity:0; transform:translateY(3px);}to{opacity:1; transform:translateY(0);} }
+.applied-info{margin-top:4px;color:#a3c3e5;font-size:.86rem;}
+.success-text{color:#87f1b8; font-weight:700;}
+.error-text{color:#ff8aa7; font-weight:700;}
+@media (max-width:1160px){ .grid-layout{grid-template-columns:1fr;} .sidebar{position:relative; width:100%; height:auto;} .main{margin-left:0; padding:16px;} }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="main">
+  <div class="page-header">
+    <h1>Entrada e Saída do Bot</h1>
+    <p>Configure mensagens de boas-vindas e despedida com visual profissional e previews 3D.</p>
+  </div>
+
+  <div class="grid-layout">
+    <div class="card settings-card">
+      <div class="section-inner">
+        <h2>Configuração de Mensagens</h2>
+        <div class="field">
+          <label>Cor do tema do painel</label>
+          <input type="color" id="panelColor" value="#1764ff" />
+        </div>
+
+        <div class="toggle-wrap">
+          <span>Ativar mensagem de entrada</span>
+          <input type="checkbox" id="enableEntry" />
+        </div>
+
+        <div class="field">
+          <label>Canal de entrada</label>
+          <select id="channelEntry"><option value="none">Selecione um canal</option><option value="#geral">#geral</option><option value="#bem-vindo">#bem-vindo</option><option value="#entrada-saida">#entrada-saida</option><option value="#anuncios">#anuncios</option></select>
+        </div>
+
+        <div class="field">
+          <label>Modelo de entrada</label>
+          <select id="templateEntry"><option value="padrao">Padrão</option><option value="emblema">Embed com Avatar</option><option value="lista">Lista de informações</option><option value="simples">Embed simples</option><option value="avatarimagem">Embed com Avatar e Imagem</option><option value="informacoes">Embed com Informações</option><option value="kitinfluencer">Kit Social Influencer™</option><option value="padrao2">Padrão Melhorado</option></select>
+        </div>
+        <div class="template-grid" id="templateEntryGrid"></div>
+
+        <div class="field">
+          <label>Mensagem de entrada</label>
+          <textarea id="messageEntry" placeholder="Digite o texto de boas-vindas...">👋 Bem-vindo {@user} ao servidor!</textarea>
+          <small class="applied-info">Use {@user}, {@server}, {@count}</small>
+        </div>
+
+        <div class="field">
+          <label>Cores rápidas</label>
+          <div class="colors-wrap">
+            <div class="color-palette" id="colorPalette"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Cor do Embed</label>
+          <input type="color" id="embedColor" value="#2f92ff" />
+        </div>
+        <div class="field">
+          <label>Autor do Embed</label>
+          <input type="text" id="embedAuthor" placeholder="{user.tag}" value="{user.tag}" />
+        </div>
+        <div class="field">
+          <label>URL do Avatar do Autor</label>
+          <input type="text" id="embedAuthorIcon" placeholder="{user.avatar}" value="https://via.placeholder.com/64" />
+        </div>
+        <div class="field">
+          <label>Título</label>
+          <input type="text" id="embedTitle" placeholder="Bem-vindo(a)!" value="Bem-vindo(a)!" />
+        </div>
+        <div class="field">
+          <label>URL da Imagem</label>
+          <input type="text" id="embedImage" placeholder="https://..." value="https://via.placeholder.com/520x180/606c89/ffffff?text=Entrada+e+Saida" />
+        </div>
+        <div class="field">
+          <label>URL da Thumbnail</label>
+          <input type="text" id="embedThumbnail" placeholder="https://..." value="https://via.placeholder.com/48" />
+        </div>
+        <div class="field">
+          <label>Texto do Rodapé</label>
+          <input type="text" id="embedFooter" placeholder="ID do usuário: {user.id}" value="ID do usuário: {user.id}" />
+        </div>
+        <div class="field">
+          <label>URL do Icon do Rodapé</label>
+          <input type="text" id="embedFooterIcon" placeholder="https://..." value="https://via.placeholder.com/20" />
+        </div>
+        <div class="field">
+          <label>Ações Rápidas</label>
+          <div class="btn-row" style="gap:8px;">
+            <button type="button" class="btn btn-secondary" id="insertChannel">Canais</button>
+            <button type="button" class="btn btn-secondary" id="insertRole">Cargos</button>
+            <button type="button" class="btn btn-secondary" id="insertEmoji">Emojis</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Deletar mensagem após (segundos, 0 = nunca)</label>
+          <input type="number" id="deleteEntry" min="0" value="0" />
+        </div>
+
+        <hr style="border-color:rgba(139,175,255,.2); margin:18px 0;">
+
+        <div class="toggle-wrap">
+          <span>Ativar mensagem de saída</span>
+          <input type="checkbox" id="enableExit" />
+        </div>
+
+        <div class="field">
+          <label>Canal de saída</label>
+          <select id="channelExit"><option value="none">Selecione um canal</option><option value="#geral">#geral</option><option value="#saida">#saida</option><option value="#logs">#logs</option></select>
+        </div>
+
+        <div class="field">
+          <label>Modelo de saída</label>
+          <select id="templateExit"><option value="padrao">Padrão</option><option value="emblema">Embed com Avatar</option><option value="lista">Lista de informações</option><option value="simples">Embed simples</option><option value="avatarimagem">Embed com Avatar e Imagem</option><option value="informacoes">Embed com Informações</option><option value="kitinfluencer">Kit Social Influencer™</option><option value="padrao2">Padrão Melhorado</option></select>
+        </div>
+        <div class="template-grid" id="templateExitGrid"></div>
+
+        <div class="field">
+          <label>Mensagem de saída</label>
+          <textarea id="messageExit" placeholder="Digite o texto de despedida...">👋 {@user} saiu do servidor. Sentiremos sua falta!</textarea>
+          <small class="applied-info">Use {@user}, {@server}, {@count}</small>
+        </div>
+
+        <div class="field">
+          <label>Deletar mensagem após (segundos, 0 = nunca)</label>
+          <input type="number" id="deleteExit" min="0" value="0" />
+        </div>
+
+        <div class="field">
+          <label>Modo de envio</label>
+          <select id="modeType"><option value="basico">Básico</option><option value="avancado">Avançado (Components V2)</option></select>
+        </div>
+
+        <div class="field">
+          <label>Selecione o estilo de painel</label>
+          <select id="panelStyle"><option value="classic">Clássico</option><option value="neon">Neon 3D</option><option value="glass">Glass</option><option value="dark">Escuro Profissional</option></select>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" id="saveConfig">Salvar Configuração</button>
+          <button type="button" class="btn btn-secondary" id="loadConfig">Carregar Configuração</button>
+          <button type="button" class="btn btn-secondary" id="resetConfig">Redefinir para Padrão</button>
+          <button type="button" class="btn btn-primary" id="sendTest">Testar Mensagem</button>
+        </div>
+
+        <p id="statusText" class="success-text"></p>
+      </div>
+    </div>
+
+    <div class="card preview-card">
+      <div class="section-inner">
+        <h2>Pré-visualização Profissional</h2>
+        <p>Veja como ficará a mensagem no servidor e use o botão Testar para simular.</p>
+        <div class="preview-discord" id="previewBox">
+          <div class="discord-header">
+            <img class="avatar" id="previewAvatar" src="https://via.placeholder.com/42" alt="Avatar" />
+            <div class="user-info">
+              <strong id="previewBotName">Sistema Administrativo do Hospital</strong>
+              <small id="previewTimestamp">Today at 09:07</small>
+            </div>
+          </div>
+          <div class="discord-embed" id="discordEmbed">
+            <strong id="previewEmbedTitle">Bem-vindo(a)!</strong>
+            <p id="previewEmbedDescription">Olá <span id="previewEmbedUser">@Criarp</span>, espero que você se divirta no meu servidor!</p>
+            <img id="previewEmbedImage" src="https://via.placeholder.com/520x180/606c89/ffffff?text=Preview" alt="Embed image" />
+            <div class="footer"><span id="previewEmbedFooter">ID do usuário: 114793... </span><img id="previewEmbedFooterIcon" width="16" height="16" src="https://via.placeholder.com/16" alt="Footer icon" /></div>
+          </div>
+          <div class="applied-info">Canal: <span id="previewChannel">-</span> | Modelo: <span id="previewModel">-</span> | Status: <span id="previewStatus">Desativado</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="watermark-foot">2026 © Horizonte Roleplay Hospital - UCP desenvolvido por Criarp</footer>
+</div>
+
+<script>
+const DEFAULT_CONFIG = {
+  panelColor:'#1764ff',
+  enableEntry:true,
+  channelEntry:'#bem-vindo',
+  templateEntry:'avatarimagem',
+  messageEntry:'👋 {@user} entrou no servidor. Seja bem-vindo ao {@server}!',
+  deleteEntry:0,
+  enableExit:true,
+  channelExit:'#saida',
+  templateExit:'avatarimagem',
+  messageExit:'👋 {@user} saiu do servidor. Sentiremos sua falta!',
+  deleteExit:0,
+  modeType:'basico',
+  panelStyle:'neon',
+  embedColor:'#2f92ff',
+  embedAuthor:'{user.tag}',
+  embedAuthorIcon:'https://via.placeholder.com/64',
+  embedTitle:'Bem-vindo(a)!',
+  embedImage:'https://via.placeholder.com/520x180/606c89/ffffff?text=Entrada+e+Saida',
+  embedThumbnail:'https://via.placeholder.com/48',
+  embedFooter:'ID do usuário: {user.id}',
+  embedFooterIcon:'https://via.placeholder.com/20'
+};
+
+function getInput(id){ return document.getElementById(id); }
+
+const TEMPLATE_VARIANTS = [
+  {key:'padrao', title:'Padrão', desc:'Texto simples e limpo', img:'https://via.placeholder.com/220x120/2b4b82/ffffff?text=Padr%C3%A3o'},
+  {key:'padrao2', title:'Padrão, só que melhor', desc:'Estilo aprimorado com ênfase', img:'https://via.placeholder.com/220x120/2f65b8/ffffff?text=Padr%C3%A3o+Melhor'},
+  {key:'lista', title:'Lista de Informações', desc:'Linha por linha com dados essenciais', img:'https://via.placeholder.com/220x120/314f8c/ffffff?text=Lista'},
+  {key:'simples', title:'Embed Simples', desc:'Caixa leve com destaque', img:'https://via.placeholder.com/220x120/1f3e7f/ffffff?text=Embed+Simples'},
+  {key:'emblema', title:'Embed com Avatar', desc:'Avatar + texto de boas-vindas', img:'https://via.placeholder.com/220x120/1f71b8/ffffff?text=Embed+Avatar'},
+  {key:'avatarimagem', title:'Embed com Avatar e Imagem', desc:'Imagem completa com avatar', img:'https://via.placeholder.com/220x120/205a92/ffffff?text=Avatar+e+Imagem'},
+  {key:'informacoes', title:'Embed com Informações', desc:'Bloco estruturado de campos', img:'https://via.placeholder.com/220x120/1b4b8f/ffffff?text=Informacoes'},
+  {key:'kitinfluencer', title:'Kit Social Influencer™', desc:'Template com estilo marcante', img:'https://via.placeholder.com/220x120/225ea5/ffffff?text=Influencer'}
+];
+
+function generateTemplateGrid(selectId, containerId){
+  const container = getInput(containerId);
+  container.innerHTML = '';
+  TEMPLATE_VARIANTS.forEach(template => {
+    const card = document.createElement('div');
+    card.className = 'template-card';
+    card.dataset.template = template.key;
+    card.innerHTML = `<img src="${template.img}" alt="${template.title}" /><h4>${template.title}</h4><small>${template.desc}</small>`;
+    card.addEventListener('click', () => {
+      const select = getInput(selectId);
+      select.value = template.key;
+      select.dispatchEvent(new Event('input'));
+      updateTemplateCardSelection(selectId, containerId);
+    });
+    container.appendChild(card);
+  });
+}
+
+function updateTemplateCardSelection(selectId, containerId){
+  const selected = getInput(selectId).value;
+  getInput(containerId).querySelectorAll('.template-card').forEach(card => {
+    card.classList.toggle('active', card.dataset.template === selected);
+  });
+}
+
+function applyPanelStyle(style){
+  const preview = getInput('previewBox');
+  switch(style){
+    case 'neon':
+      preview.style.background = 'linear-gradient(145deg, rgba(21,60,122,.95) 0%, rgba(12,22,46,.93) 100%)';
+      preview.style.boxShadow='0 20px 35px rgba(49,148,255,0.35),0 0 30px rgba(93,166,255,0.22)';
+      break;
+    case 'glass':
+      preview.style.background = 'linear-gradient(145deg, rgba(19,33,46,.85) 0%, rgba(15,24,39,.88) 100%)';
+      preview.style.boxShadow='0 10px 26px rgba(19,33,55,0.55)';
+      break;
+    case 'dark':
+      preview.style.background = 'linear-gradient(145deg, rgba(9,15,28,.95) 0%, rgba(14,20,35,.9) 100%)';
+      preview.style.boxShadow='0 10px 30px rgba(0,0,0,0.4)';
+      break;
+    default:
+      preview.style.background = 'linear-gradient(145deg, rgba(12,20,38,.95) 0%, rgba(16,23,41,.95) 100%)';
+      preview.style.boxShadow='0 12px 28px rgba(0,0,0,.45)';
+  }
+}
+
+function loadConfig(){
+  const stored = JSON.parse(localStorage.getItem('config_entradas_saida') || 'null');
+  const config = stored || DEFAULT_CONFIG;
+  getInput('panelColor').value=config.panelColor;
+  getInput('enableEntry').checked=config.enableEntry;
+  getInput('channelEntry').value=config.channelEntry;
+  getInput('templateEntry').value=config.templateEntry;
+  getInput('messageEntry').value=config.messageEntry;
+  getInput('deleteEntry').value=config.deleteEntry;
+  getInput('enableExit').checked=config.enableExit;
+  getInput('channelExit').value=config.channelExit;
+  getInput('templateExit').value=config.templateExit;
+  getInput('messageExit').value=config.messageExit;
+  getInput('deleteExit').value=config.deleteExit;
+  getInput('modeType').value=config.modeType;
+  getInput('panelStyle').value=config.panelStyle;
+
+  getInput('embedColor').value=config.embedColor || DEFAULT_CONFIG.embedColor;
+  getInput('embedAuthor').value=config.embedAuthor || DEFAULT_CONFIG.embedAuthor;
+  getInput('embedAuthorIcon').value=config.embedAuthorIcon || DEFAULT_CONFIG.embedAuthorIcon;
+  getInput('embedTitle').value=config.embedTitle || DEFAULT_CONFIG.embedTitle;
+  getInput('embedImage').value=config.embedImage || DEFAULT_CONFIG.embedImage;
+  getInput('embedThumbnail').value=config.embedThumbnail || DEFAULT_CONFIG.embedThumbnail;
+  getInput('embedFooter').value=config.embedFooter || DEFAULT_CONFIG.embedFooter;
+  getInput('embedFooterIcon').value=config.embedFooterIcon || DEFAULT_CONFIG.embedFooterIcon;
+
+  generateTemplateGrid('templateEntry','templateEntryGrid');
+  generateTemplateGrid('templateExit','templateExitGrid');
+  updateTemplateCardSelection('templateEntry','templateEntryGrid');
+  updateTemplateCardSelection('templateExit','templateExitGrid');
+  getInput('statusText').textContent='Configuração carregada!';
+  getInput('statusText').className='success-text';
+  getInput('panelColor').dispatchEvent(new Event('input'));
+  updatePreview();
+}
+
+function saveConfig(){
+  const config = {
+    panelColor:getInput('panelColor').value,
+    enableEntry:getInput('enableEntry').checked,
+    channelEntry:getInput('channelEntry').value,
+    templateEntry:getInput('templateEntry').value,
+    messageEntry:getInput('messageEntry').value.trim() || DEFAULT_CONFIG.messageEntry,
+    deleteEntry:Number(getInput('deleteEntry').value),
+    enableExit:getInput('enableExit').checked,
+    channelExit:getInput('channelExit').value,
+    templateExit:getInput('templateExit').value,
+    messageExit:getInput('messageExit').value.trim() || DEFAULT_CONFIG.messageExit,
+    deleteExit:Number(getInput('deleteExit').value),
+    modeType:getInput('modeType').value,
+    panelStyle:getInput('panelStyle').value,
+    embedColor:getInput('embedColor').value,
+    embedAuthor:getInput('embedAuthor').value,
+    embedAuthorIcon:getInput('embedAuthorIcon').value,
+    embedTitle:getInput('embedTitle').value,
+    embedImage:getInput('embedImage').value,
+    embedThumbnail:getInput('embedThumbnail').value,
+    embedFooter:getInput('embedFooter').value,
+    embedFooterIcon:getInput('embedFooterIcon').value
+  };
+  localStorage.setItem('config_entradas_saida', JSON.stringify(config));
+  getInput('statusText').textContent='Configuração salva com sucesso!';
+  getInput('statusText').className='success-text';
+  updatePreview();
+}
+
+function resetConfig(){
+  localStorage.removeItem('config_entradas_saida');
+  loadConfig();
+  getInput('statusText').textContent='Configuração redefinida para o padrão.';
+  getInput('statusText').className='success-text';
+}
+
+function buildPlaceholder(message){
+  return message
+    .replace(/{@user}/g,'@Criarp')
+    .replace(/{@server}/g,'HospAdmin')
+    .replace(/{@count}/g,'1324');
+}
+
+function updatePreview(){
+  const isEntry = getInput('enableEntry').checked;
+  const isExit = getInput('enableExit').checked;
+  const channel = isEntry ? getInput('channelEntry').value : isExit ? getInput('channelExit').value : '-';
+  const modelo = isEntry ? getInput('templateEntry').value : getInput('templateExit').value;
+  const rawMessage = isEntry ? getInput('messageEntry').value : isExit ? getInput('messageExit').value : '';
+  const msg = rawMessage.trim() || (isEntry ? DEFAULT_CONFIG.messageEntry : DEFAULT_CONFIG.messageExit);
+  const finalText = buildPlaceholder(msg);
+
+  const embedColor = getInput('embedColor').value || DEFAULT_CONFIG.embedColor;
+  const authorName = getInput('embedAuthor').value || DEFAULT_CONFIG.embedAuthor;
+  const authorIconUrl = getInput('embedAuthorIcon').value || DEFAULT_CONFIG.embedAuthorIcon;
+  const title = getInput('embedTitle').value || DEFAULT_CONFIG.embedTitle;
+  const imageUrl = getInput('embedImage').value || DEFAULT_CONFIG.embedImage;
+  const thumbnailUrl = getInput('embedThumbnail').value || DEFAULT_CONFIG.embedThumbnail;
+  const footerText = getInput('embedFooter').value || DEFAULT_CONFIG.embedFooter;
+  const footerIcon = getInput('embedFooterIcon').value || DEFAULT_CONFIG.embedFooterIcon;
+
+  const previewScreen = document.getElementById('previewBox');
+  const embedBox = document.getElementById('discordEmbed');
+  const panelColor = getInput('panelColor').value || DEFAULT_CONFIG.panelColor;
+
+  document.getElementById('previewChannel').textContent = channel === 'none' ? 'nenhum canal definido' : channel;
+  document.getElementById('previewModel').textContent = modelo;
+
+  previewScreen.style.borderColor = panelColor;
+  previewScreen.style.background = `linear-gradient(135deg, ${hexFade(panelColor,0.35)} 0%, rgba(2,9,21,0.95) 80%)`;
+  embedBox.style.borderLeftColor = panelColor;
+
+  const statusText = (isEntry||isExit) ? 'Ativo' : 'Desativado';
+  const statusColor = (isEntry||isExit) ? 'rgba(40, 180, 130, 0.35)' : 'rgba(255, 110, 110, 0.45)';
+  const statusBadge = document.getElementById('previewStatus');
+  statusBadge.textContent = statusText;
+  statusBadge.style.background = statusColor;
+
+  if(!isEntry && !isExit){
+    document.getElementById('previewTitle')?.remove?.();
+  }
+
+  const previewAvatar = document.getElementById('previewAvatar');
+  previewAvatar.src = authorIconUrl || 'https://via.placeholder.com/42';
+  document.getElementById('previewEmbedTitle').textContent = title;
+  document.getElementById('discordEmbed').style.borderLeftColor = embedColor;
+  document.getElementById('discordEmbed').style.background = `linear-gradient(135deg, ${hexFade(embedColor, .18)} 0%, rgba(13, 24, 39, .9) 100%)`;
+
+  document.getElementById('previewEmbedDescription').textContent = finalText;
+  document.getElementById('previewEmbedUser').textContent = buildPlaceholder('{@user}');
+  document.getElementById('previewEmbedImage').src = imageUrl || 'https://via.placeholder.com/520x180/606c89/ffffff?text=Entrada+e+Saida';
+  document.getElementById('previewEmbedImage').style.display = imageUrl ? 'block' : 'none';
+
+  document.getElementById('previewEmbedFooter').textContent = buildPlaceholder(footerText);
+  const footerIconEl = document.getElementById('previewEmbedFooterIcon');
+  footerIconEl.src = footerIcon || 'https://via.placeholder.com/20';
+  footerIconEl.style.display = footerIcon ? 'inline' : 'none';
+
+  showStatusMessage(`Preview atualizado para ${isEntry ? 'entrada' : 'saída'} com Modelo: ${modelo}`,'sucesso');
+}
+
+function hexFade(hex, opacity){
+  const c = hex.replace('#','');
+  const r = parseInt(c.substring(0,2),16);
+  const g = parseInt(c.substring(2,4),16);
+  const b = parseInt(c.substring(4,6),16);
+  return `rgba(${r},${g},${b},${opacity})`;
+}
+
+function showStatusMessage(text, type='info'){
+  const el = getInput('statusText');
+  if(!el) return;
+  el.textContent = text;
+  el.className = type === 'erro' ? 'error-text toast-fade' : 'success-text toast-fade';
+  setTimeout(()=>{ el.textContent=''; }, 2400);
+}
+
+function testMessage(){
+  const entryStatus=getInput('enableEntry').checked;
+  const exitStatus=getInput('enableExit').checked;
+  if(!entryStatus && !exitStatus){
+    getInput('statusText').textContent='Ative pelo menos um dos modos para testar.';
+    getInput('statusText').className='error-text';
+    return;
+  }
+  const sim = entryStatus ? 'entrada' : 'saída';
+  getInput('statusText').textContent=`Simulando mensagem de ${sim} no canal ${entryStatus?getInput('channelEntry').value:getInput('channelExit').value}...`; 
+  getInput('statusText').className='success-text';
+  setTimeout(() => {
+    getInput('statusText').textContent = `Mensagem de ${sim} enviada com sucesso!`;
+  }, 800);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const fields = ['panelColor','enableEntry','channelEntry','templateEntry','messageEntry','deleteEntry','enableExit','channelExit','templateExit','messageExit','deleteExit','modeType','panelStyle','embedColor','embedAuthor','embedAuthorIcon','embedTitle','embedImage','embedThumbnail','embedFooter','embedFooterIcon'];
+  fields.forEach(id=>getInput(id).addEventListener('input', () => {
+    if(id==='panelColor') document.querySelector('.sidebar').style.borderLeft = `4px solid ${getInput('panelColor').value}`;
+    if(id==='panelStyle') applyPanelStyle(getInput(id).value);
+    if(id==='templateEntry') updateTemplateCardSelection('templateEntry','templateEntryGrid');
+    if(id==='templateExit') updateTemplateCardSelection('templateExit','templateExitGrid');
+    updatePreview();
+  }));
+
+  const colors = [ '#2f92ff', '#1eb8a6', '#8b5cf6', '#14b8a6', '#f9a825', '#ff5c6a', '#94a3b8', '#5651ff' ];
+  const palette = getInput('colorPalette');
+  colors.forEach(c => {
+    const btn = document.createElement('button');
+    btn.style.background = c;
+    btn.addEventListener('click', () =>{
+      getInput('embedColor').value = c;
+      updatePreview();
+      showStatusMessage(`Cor do Embed definida para ${c}`,'sucesso');
+    });
+    palette.appendChild(btn);
+  });
+
+  const insertButton = (id, template) => {
+    const target = getInput('messageEntry');
+    getInput(id).addEventListener('click', () => {
+      const cursor = target.selectionStart;
+      const val = target.value;
+      target.value = val.slice(0, cursor) + template + val.slice(cursor);
+      target.focus();
+      target.setSelectionRange(cursor + template.length,cursor + template.length);
+      updatePreview();
+      showStatusMessage(`Inserido ${template} no texto.`,'sucesso');
+    });
+  };
+  insertButton('insertChannel', '{#canal}');
+  insertButton('insertRole', '{@role}');
+  insertButton('insertEmoji', '😄');
+  getInput('saveConfig').addEventListener('click', saveConfig);
+  getInput('loadConfig').addEventListener('click', loadConfig);
+  getInput('resetConfig').addEventListener('click', resetConfig);
+  getInput('sendTest').addEventListener('click', testMessage);
+  loadConfig();
+});
+function abrir(pagina){ alert('Você clicou em: ' + pagina); }
+</script>
+<script src="script.js"></script>
+</body>
+</html>

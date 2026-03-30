@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro | Painel Horizon</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="bg"></div>
+<div class="top-logo">
+  <img src="images/logo_new.png" alt="Logo do Sistema" />
+</div>
+<section class="page">
+  <div class="visual">
+    <div class="visual-content">
+      <div class="visual-header"><h2>SISTEMA ADMINISTRATIVO DO HOSPITAL</h2></div>
+      <div class="visual-image"><img src="images/1773721088505~3.png" alt="Painel imagem" /></div>
+    </div>
+  </div>
+  <div class="panel-wrap">
+    <form id="registro-form" class="panel">
+      <h1>REGISTRE-SE</h1>
+      <div class="form-group"><label>Selecione o servidor</label><select class="input select" name="server" data-server><option value="none">Selecione o servidor ↓</option><option value="server1">Servidor 1</option><option value="server2">Servidor 2</option><option value="server3">Servidor 3</option><option value="server4">Servidor 4</option><option value="server5">Servidor 5</option></select></div>
+      <div class="form-group"><label>Nome do usuário</label><input class="input" type="text" name="username" placeholder="👨🏼‍💼 Nome_Sobrenome"></div>
+      <div class="form-group"><label>Senha</label><input class="input" type="password" name="password" placeholder="🔒 ********"></div>
+      <div class="form-group"><label>Sexo</label><div class="card-grid"><button type="button" class="gender-card" data-gender="masculino"><span>👨</span> Homem</button><button type="button" class="gender-card" data-gender="feminino"><span>👩</span> Mulher</button></div></div>
+      <input id="gender" type="hidden" value="masculino">
+      <div class="terms"><input type="checkbox" name="terms" id="terms"><label for="terms">Aceito os termos de uso</label></div>
+      <div class="error"></div>
+      <button class="btn btn-discord" type="button" id="vincularDiscordBtn" onclick="return false;">🔗 Vincular Conta do Discord</button>
+      <div id="discordVinculado" style="display:none; margin:10px 0; padding:10px; background:rgba(100,255,100,.15); border:1px solid rgba(100,255,100,.3); border-radius:8px; color:#90ff90; text-align:center; font-weight:600;">✅ Conta do Discord vinculada com sucesso!</div>
+      <button class="btn btn-primary" type="submit" id="criarContaBtn" disabled style="opacity:0.5; cursor:not-allowed;">CRIAR CONTA</button>
+      <div class="bottom-text">Já possui conta? <a href="index.html">Fazer login</a></div>
+    </form>
+  </div>
+</section>
+<section class="system-summary">
+  <h3>Sobre o Sistema</h3>
+  <p>O Sistema Administrativo do Hospital foi desenvolvido para oferecer organização, controle e gestão completa de todas as operações internas do hospital dentro do servidor. A plataforma funciona através de um bot administrativo avançado, criado para facilitar o trabalho da direção e garantir que todos os registros e processos sejam feitos de forma profissional e segura.</p>
+  <p>Nossa plataforma conta com várias funções administrativas integradas, permitindo que a equipe da direção tenha controle total do hospital.</p>
+  <strong>⚙️ Principais funcionalidades do sistema:</strong>
+  <ul>
+    <li>Configuração completa do servidor</li>
+    <li>Sistema de tickets para suporte e atendimento interno</li>
+    <li>Sistema de registro de entrada e saída de serviço</li>
+    <li>Painel administrativo para gerenciamento de informações</li>
+    <li>Sistema de edição e atualização de registros</li>
+    <li>Envio de mensagens automáticas e administrativas</li>
+    <li>Organização de registros profissionais do hospital</li>
+    <li>Controle e gerenciamento interno da equipe</li>
+    <li>Diversas outras ferramentas administrativas exclusivas</li>
+  </ul>
+  <p>🔐 Acesso Restrito: acesso privado e protegido. Apenas membros autorizados da Direção do Hospital podem realizar login e usar funcionalidades administrativas.</p>
+  <p>📊 O objetivo é garantir organização, profissionalismo e transparência na administração do hospital, com controle completo de todos os processos internos.</p>
+  <p>💼 Sistema Administrativo Oficial do Hospital — desenvolvido para gestão moderna, segura e eficiente para toda a equipe médica.</p>
+</section>
+<script src="script.js"></script>
+<footer class="watermark-foot">2026 © Horizonte Roleplay Hospital - UCP desenvolvido por Criarp</footer>
+</body>
+</html>

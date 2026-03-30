@@ -1,0 +1,31 @@
+SALVE AS IMAGENS DE PERFIL NESTA PASTA
+=====================================
+
+Para que o sistema funcione corretamente, você precisa salvar as duas imagens de perfil aqui com estes EXATOS nomes:
+
+1. FOTO MASCULINA (Médico)
+   Nome do arquivo: doctor-male.png
+   O que é: A imagem do médico de branco com estetoscópio
+   Dimensões ideais: 120x120px ou maior (quadrado)
+
+2. FOTO FEMININA (Enfermeira)
+   Nome do arquivo: nurse-female.png
+   O que é: A imagem da enfermeira de verde/turquesa com máscara
+   Dimensões ideais: 120x120px ou maior (quadrado)
+
+COMO FAZER:
+===========
+1. Abra as imagens anexadas no chat
+2. Clique com botão direito → Salvar imagem como
+3. Navegue para: C:\Users\carlo\OneDrive\Documentos\BOT HZ\site\images
+4. Cole na pasta com o nome EXATO acima (com extensão .png)
+
+VERIFICAÇÃO:
+============
+Depois de salvar, a pasta deverá ter:
+- doctor-male.png
+- nurse-female.png
+
+E o sistema carregará automaticamente:
+- Masculino (sexo selecionado no registro) → doctor-male.png
+- Feminino (sexo selecionado no registro) → nurse-female.png

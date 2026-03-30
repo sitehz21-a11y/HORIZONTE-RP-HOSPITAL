@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Membros do Servidor | Painel Horizon</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+body{margin:0; font-family:Arial,sans-serif; background:#0b1320; color:white;}
+.logo{font-size:20px; font-weight:bold; margin-bottom:30px;}
+.main{margin-left:250px; padding:30px; display:flex; flex-direction:column; min-height:100vh;}
+.page-header{margin-bottom:30px; display:flex; justify-content:space-between; align-items:center;}
+.page-header h1{margin:0; font-size:28px; color:#e8f2ff;}
+.btn-back{background:rgba(255,255,255,.1); color:white; border:1px solid rgba(255,255,255,.2); padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:600; font-size:.9rem;}
+.btn-back:hover{background:rgba(255,255,255,.15);}
+.search-box{background:rgba(15,27,57,.5); border-radius:12px; padding:15px; border:1px solid rgba(255,255,255,.15); margin-bottom:20px;}
+.search-box input{width:100%; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); color:white; padding:12px 15px; border-radius:8px; font-size:.95rem;}
+.search-box input::placeholder{color:rgba(255,255,255,.5);}
+.search-box input:focus{outline:none; border-color:#5865f2; background:rgba(255,255,255,.12);}
+.search-info{font-size:.85rem; color:#96a4c4; margin-top:8px; display:none;}
+.discord-members-grid{display:grid; grid-template-columns:repeat(5, 1fr); gap:20px; margin-bottom:30px;}
+.discord-member-card{background:rgba(15,27,57,.5); border-radius:16px; padding:20px; border:1px solid rgba(255,255,255,.15); cursor:pointer; transition:all .3s ease; position:relative; overflow:hidden;}
+.discord-member-card:hover{background:rgba(15,27,57,.8); border-color:#5865f2; transform:translateY(-4px); box-shadow:0 8px 24px rgba(88,101,242,.2);}
+.discord-status{position:absolute; top:12px; right:12px; width:16px; height:16px; border-radius:50%; border:2px solid white;}
+.discord-status.online{background:#43b581; box-shadow:0 0 8px rgba(67,181,129,.6);}
+.discord-status.idle{background:#faa61a; box-shadow:0 0 8px rgba(250,166,26,.6);}
+.discord-status.dnd{background:#f04747; box-shadow:0 0 8px rgba(240,71,71,.6);}
+.discord-status.offline{background:#747f8d; box-shadow:0 0 8px rgba(116,127,141,.6);}
+.member-avatar{width:100px; height:100px; border-radius:50%; border:3px solid #5865f2; margin:0 auto 15px; object-fit:cover; background:#1a2f5a;}
+.member-name{font-size:16px; font-weight:bold; text-align:center; color:#e8f2ff; margin-bottom:3px; word-break:break-word;}
+.member-id{font-size:.75rem; text-align:center; color:#96a4c4; margin-bottom:10px; font-family:monospace;}
+.member-role-badge{text-align:center; margin-bottom:12px; padding:6px; background:rgba(88,101,242,.2); border-radius:6px; border-left:3px solid #5865f2;}
+.member-role-title{font-size:.85rem; font-weight:600; color:#5865f2; text-transform:uppercase;}
+.member-role-name{font-size:.9rem; color:#e8f2ff; margin-top:3px;}
+.member-stats{display:flex; justify-content:space-around; border-top:1px solid rgba(255,255,255,.1); padding-top:12px; margin-top:12px;}
+.member-stat{text-align:center; flex:1; font-size:.75rem;}
+.member-stat-label{color:#96a4c4;}
+.no-members{text-align:center; padding:40px 20px; color:#96a4c4;}
+.no-members-icon{font-size:48px; margin-bottom:15px;}
+
+.member-modal{display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.8); z-index:1000; align-items:center; justify-content:center; padding:20px;}
+.member-modal.active{display:flex;}
+.modal-content{background:#0e1a2b; border-radius:16px; max-width:600px; width:100%; max-height:90vh; overflow-y:auto; border:1px solid rgba(255,255,255,.15);}
+.modal-header{display:flex; justify-content:space-between; align-items:center; padding:20px; border-bottom:1px solid rgba(255,255,255,.15);}
+.modal-header h2{margin:0; color:#e8f2ff;}
+.modal-close{background:none; border:none; color:white; font-size:24px; cursor:pointer; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:6px;}
+.modal-close:hover{background:rgba(255,255,255,.1);}
+.modal-body{padding:20px;}
+.modal-profile{display:flex; gap:20px; margin-bottom:25px;}
+.modal-avatar{width:120px; height:120px; border-radius:50%; border:3px solid #5865f2; object-fit:cover; flex-shrink:0;}
+.modal-main-info h3{margin:0 0 15px; font-size:24px; color:#e8f2ff;}
+.modal-main-info p{margin:5px 0; font-size:.95rem; color:#96a4c4;}
+.modal-details{display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:25px;}
+.detail-item{background:rgba(255,255,255,.05); border-radius:10px; padding:15px;}
+.detail-item-label{font-size:.85rem; color:#96a4c4; margin-bottom:5px;}
+.detail-item-value{font-size:.95rem; color:#e8f2ff; font-weight:500; word-break:break-all;}
+.detail-full{grid-column:1 / -1;}
+
+@media (max-width:1400px){ .discord-members-grid{grid-template-columns:repeat(4, 1fr);} }
+@media (max-width:1100px){ .discord-members-grid{grid-template-columns:repeat(3, 1fr);} }
+@media (max-width:900px){ .main{margin-left:0; padding:14px;} .sidebar{position:relative; width:100%; height:auto; padding:15px;} .discord-members-grid{grid-template-columns:repeat(2, 1fr); gap:15px;} .page-header{flex-direction:column; align-items:flex-start; gap:15px;} }
+@media (max-width:600px){ .discord-members-grid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+
+<div class="sidebar">
+  <div class="logo">Sistema Hospital</div>
+  <div class="menu">
+    <button onclick="navegarPara('painel.html')">Início</button>
+    <button onclick="navegarPara('minha-conta.html')">Minha Conta</button>
+    <button onclick="navegarPara('membros.html')">Membros</button>
+    <button onclick="navegarPara('#')" class="active">Membros Servidor</button>
+    <button onclick="navegarPara('#')">Sistema Administrativo</button>
+    <button onclick="navegarPara('#')">Registros</button>
+    <button onclick="navegarPara('#')">Tickets</button>
+    <button onclick="navegarPara('#')">Mensagens</button>
+    <button onclick="navegarPara('#')">Servidor</button>
+    <button onclick="navegarPara('#')">Configurações</button>
+    <button onclick="navegarPara('entrada-saida.html')">Entrada e Saída</button>
+    <button onclick="navegarPara('#')">Punições</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="page-header-logo">
+    <a href="painel.html" class="logo-link">
+      <img src="images/logo_new.png" alt="Logo" class="header-logo">
+    </a>
+  </div>
+  
+  <div class="page-header">
+    <h1>Membros do Servidor Discord</h1>
+    <button class="btn-back" onclick="window.location.href='membros.html'">← Voltar</button>
+  </div>
+
+  <div class="search-box">
+    <input type="text" id="search-input" placeholder="🔍 Pesquisar por @ID, nome ou cargo..." />
+    <div class="search-info" id="search-info"></div>
+  </div>
+
+  <div class="discord-members-grid" id="discord-members-grid">
+    <div class="no-members">
+      <div class="no-members-icon">👥</div>
+      <p>Carregando membros do servidor...</p>
+    </div>
+  </div>
+  
+  <footer class="watermark-foot">2026 © Horizonte Roleplay Hospital - UCP desenvolvido por Criarp</footer>
+</div>
+
+<!-- Modal de Detalhes -->
+<div class="member-modal" id="member-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Informações do Membro</h2>
+      <button class="modal-close" onclick="fecharModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-profile">
+        <img id="modal-avatar" src="images/doctor-male.jpeg" alt="Avatar" class="modal-avatar" onerror="this.src='images/logo_new.png'" />
+        <div class="modal-main-info">
+          <h3 id="modal-name">Usuário</h3>
+          <p><strong>ID:</strong> <code id="modal-id">-</code></p>
+          <p><strong>Status:</strong> <span id="modal-status" style="color:#43b581;">🟢 Online</span></p>
+          <p><strong>Na Plataforma:</strong> <span id="modal-site-account" style="color:#96a4c4;">-</span></p>
+        </div>
+      </div>
+
+      <div class="modal-details">
+        <div class="detail-item">
+          <div class="detail-item-label">Cargo Principal</div>
+          <div class="detail-item-value" id="modal-role">-</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item-label">Nível de Cargo</div>
+          <div class="detail-item-value" id="modal-role-level">-</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item-label">Data de Associação</div>
+          <div class="detail-item-value" id="modal-joined">-</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item-label">Conta no Site</div>
+          <div class="detail-item-value" id="modal-site-username">-</div>
+        </div>
+        <div class="detail-item detail-full">
+          <div class="detail-item-label">ID do Discord</div>
+          <div class="detail-item-value" id="modal-discord-id">-</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Verificar se está logado
+const loggedUser = sessionStorage.getItem('loggedUser');
+if(!loggedUser){
+  window.location.href = 'index.html';
+}
+
+let todosOsMembrosServidor = [];
+let membrosServidorExibidos = [];
+
+function navegarPara(url){
+  if(url !== '#') window.location.href = url;
+}
+
+function fecharModal(){
+  document.getElementById('member-modal').classList.remove('active');
+}
+
+// Dados simulados de membros do servidor Discord
+function gerarMembrosServidor(){
+  const dadosMembros = [
+    { nome: 'Salvador', id: '123456789012345678', cargo: 'Diretor', nivelCargo: 10, siteAccount: 'Salvador', site: true, status: 'online' },
+    { nome: 'criarp', id: '234567890123456789', cargo: 'Administrador', nivelCargo: 9, siteAccount: 'criarp', site: true, status: 'online' },
+    { nome: 'NATHY_DLAURENN', id: '345678901234567890', cargo: 'Coordenador', nivelCargo: 8, siteAccount: 'NATHY_DLAURENN', site: true, status: 'idle' },
+    { nome: 'PaulinhoD|aurenn', id: '456789012345678901', cargo: 'Coordenador', nivelCargo: 8, siteAccount: 'PaulinhoD|aurenn', site: true, status: 'online' },
+    { nome: 'Ricky_W', id: '567890123456789012', cargo: 'Coordenador', nivelCargo: 8, siteAccount: 'Ricky_W', site: true, status: 'offline' },
+    { nome: 'Reizinh0', id: '678901234567890123', cargo: 'Diretor', nivelCargo: 10, siteAccount: 'Reizinh0', site: true, status: 'online' },
+    { nome: 'Bilbo', id: '789012345678901234', cargo: 'Diretor', nivelCargo: 10, siteAccount: 'Bilbo', site: true, status: 'dnd' },
+    { nome: 'GFMagnata', id: '890123456789012345', cargo: 'Diretor', nivelCargo: 10, siteAccount: 'GFMagnata', site: true, status: 'online' },
+    { nome: 'MemberA', id: '901234567890123456', cargo: 'Membro', nivelCargo: 1, siteAccount: null, site: false, status: 'offline' },
+    { nome: 'MemberB', id: '012345678901234567', cargo: 'Moderador', nivelCargo: 5, siteAccount: null, site: false, status: 'online' },
+  ];
+  
+  return dadosMembros.map(m => ({
+    ...m,
+    joinedDate: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR'),
+    avatar: Math.random() > 0.5 ? 'images/nurse-female.jpeg' : 'images/doctor-male.jpeg'
+  }));
+}
+
+function carregarMembrosServidor(){
+  todosOsMembrosServidor = gerarMembrosServidor();
+  
+  // Ordena por nível de cargo (maior primeiro)
+  todosOsMembrosServidor.sort((a, b) => b.nivelCargo - a.nivelCargo);
+  
+  membrosServidorExibidos = [...todosOsMembrosServidor];
+  exibirMembros();
+}
+
+function exibirMembros(){
+  const grid = document.getElementById('discord-members-grid');
+  
+  if(membrosServidorExibidos.length === 0){
+    grid.innerHTML = '<div class="no-members"><div class="no-members-icon">🔍</div><p>Nenhum membro encontrado.</p></div>';
+    return;
+  }
+  
+  grid.innerHTML = membrosServidorExibidos.map((member, index) => {
+    const statusEmoji = { online: '🟢', idle: '🟡', dnd: '🔴', offline: '⚪' }[member.status];
+    const statusColor = { online: '#43b581', idle: '#faa61a', dnd: '#f04747', offline: '#747f8d' }[member.status];
+    
+    return `
+      <div class="discord-member-card" onclick="abrirModal(${membrosServidorExibidos.indexOf(member)})">
+        <div class="discord-status ${member.status}"></div>
+        <img src="${member.avatar}" alt="Avatar" class="member-avatar" onerror="this.src='images/logo_new.png'" />
+        <div class="member-name">${member.nome}</div>
+        <div class="member-id">@${member.id}</div>
+        <div class="member-role-badge">
+          <div class="member-role-title">Cargo</div>
+          <div class="member-role-name">${member.cargo}</div>
+        </div>
+        <div class="member-stats">
+          <div class="member-stat">
+            <span style="color: ${statusColor}">${statusEmoji}</span>
+            <div class="member-stat-label">${member.status === 'online' ? 'Online' : member.status === 'idle' ? 'Ausente' : member.status === 'dnd' ? 'Ocupado' : 'Offline'}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function abrirModal(index){
+  const member = membrosServidorExibidos[index];
+  const statusTexto = { online: '🟢 Online', idle: '🟡 Ausente', dnd: '🔴 Ocupado', offline: '⚪ Offline' }[member.status];
+  const statusColor = { online: '#43b581', idle: '#faa61a', dnd: '#f04747', offline: '#747f8d' }[member.status];
+  
+  document.getElementById('modal-avatar').src = member.avatar;
+  document.getElementById('modal-name').textContent = member.nome;
+  document.getElementById('modal-id').textContent = member.id;
+  document.getElementById('modal-status').textContent = statusTexto;
+  document.getElementById('modal-status').style.color = statusColor;
+  document.getElementById('modal-role').textContent = member.cargo;
+  document.getElementById('modal-role-level').textContent = `Nível ${member.nivelCargo}`;
+  document.getElementById('modal-joined').textContent = member.joinedDate;
+  document.getElementById('modal-discord-id').textContent = member.id;
+  
+  if(member.site && member.siteAccount){
+    document.getElementById('modal-site-username').textContent = member.siteAccount;
+    document.getElementById('modal-site-account').textContent = '✅ Verificado';
+    document.getElementById('modal-site-account').style.color = '#4caf50';
+  } else {
+    document.getElementById('modal-site-username').textContent = 'Não vinculada';
+    document.getElementById('modal-site-account').textContent = '❌ Sem conta';
+    document.getElementById('modal-site-account').style.color = '#ff6b6b';
+  }
+  
+  document.getElementById('member-modal').classList.add('active');
+}
+
+// Pesquisa
+document.getElementById('search-input').addEventListener('input', (e) => {
+  const termo = e.target.value.toLowerCase().trim();
+  const searchInfo = document.getElementById('search-info');
+  
+  if(!termo){
+    membrosServidorExibidos = [...todosOsMembrosServidor];
+    searchInfo.style.display = 'none';
+  } else {
+    membrosServidorExibidos = todosOsMembrosServidor.filter(member => 
+      member.nome.toLowerCase().includes(termo) ||
+      member.id.includes(termo) ||
+      member.cargo.toLowerCase().includes(termo) ||
+      member.siteAccount?.toLowerCase().includes(termo)
+    );
+    
+    membrosServidorExibidos.sort((a, b) => {
+      // Prioriza correspondência exata com ID
+      if(a.id.includes(termo) && !b.id.includes(termo)) return -1;
+      if(!a.id.includes(termo) && b.id.includes(termo)) return 1;
+      
+      // Depois prioriza começo de nome
+      const aStart = a.nome.toLowerCase().startsWith(termo);
+      const bStart = b.nome.toLowerCase().startsWith(termo);
+      if(aStart && !bStart) return -1;
+      if(!aStart && bStart) return 1;
+      
+      // Mantém ordem por cargo
+      return b.nivelCargo - a.nivelCargo;
+    });
+    
+    if(membrosServidorExibidos.length === 0){
+      searchInfo.textContent = `Nenhum membro encontrado para "${termo}"`;
+      searchInfo.style.color = '#ff6b6b';
+    } else if(membrosServidorExibidos.length === 1){
+      searchInfo.textContent = `Encontrado 1 membro: ${membrosServidorExibidos[0].nome}`;
+      searchInfo.style.color = '#4caf50';
+    } else {
+      searchInfo.textContent = `${membrosServidorExibidos.length} membros encontrados`;
+      searchInfo.style.color = '#96a4c4';
+    }
+    searchInfo.style.display = 'block';
+  }
+  
+  exibirMembros();
+});
+
+// Carregar membros ao abrir a página
+carregarMembrosServidor();
+
+// Fechar modal ao clicar fora
+document.getElementById('member-modal').addEventListener('click', (e) => {
+  if(e.target.id === 'member-modal'){
+    fecharModal();
+  }
+});
+</script>
+</body>
+</html>

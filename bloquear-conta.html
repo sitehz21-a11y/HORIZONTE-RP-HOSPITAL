@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bloquear Conta | Painel Horizon</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+body{margin:0; font-family:Arial,sans-serif; background:#0b1320; color:white; padding:20px;}
+.container{max-width:600px; margin:0 auto;}
+.header{display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;}
+.header h1{margin:0; font-size:28px; color:#e8f2ff;}
+.header button{background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.15); color:#e8f2ff; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:600;}
+.header button:hover{background:rgba(255,255,255,.1);}
+.info-card{background:rgba(15,27,57,.5); border:1px solid rgba(255,255,255,.15); border-radius:12px; padding:20px; margin-bottom:25px;}
+.info-card h3{margin:0 0 15px; color:#90c5ff; text-transform:uppercase; font-size:.9rem;}
+.info-row{display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.1);}
+.info-row:last-child{border-bottom:none;}
+.info-label{color:#96a4c4;}
+.info-value{color:#e8f2ff; font-weight:500;}
+.form-group{margin-bottom:20px;}
+.form-group label{display:block; color:#bddcff; margin-bottom:8px; font-weight:500; font-size:.9rem;}
+.form-group select,
+.form-group textarea{width:100%; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); color:white; padding:12px; border-radius:8px; font-size:.95rem; font-family:inherit;}
+.form-group select:focus,
+.form-group textarea:focus{outline:none; border-color:#ffa500; background:rgba(255,255,255,.12);}
+.days-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(60px, 1fr)); gap:8px;}
+.day-btn{background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.15); color:#e8f2ff; padding:10px; border-radius:8px; cursor:pointer; transition:all .2s; font-weight:500;}
+.day-btn:hover{background:rgba(255,165,0,.2); border-color:#ffa500;}
+.day-btn.active{background:#ffa500; border-color:#ffa500; color:#000;}
+.form-group textarea{resize:vertical; min-height:100px;}
+.warning-block{background:rgba(255,165,0,.1); border-left:4px solid #ffa500; padding:12px; border-radius:6px; margin-bottom:20px; color:#ffb74d;}
+.action-buttons{display:flex; gap:15px; margin-top:30px;}
+.btn-action{flex:1; padding:14px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:.95rem; transition:all .3s;}
+.btn-confirm{background:#ffa500; color:#000;}
+.btn-confirm:hover{background:#ffb81a;}
+.btn-confirm:disabled{background:#99999950; cursor:not-allowed;}
+.btn-cancel{background:rgba(255,255,255,.05); color:#e8f2ff; border:1px solid rgba(255,255,255,.15);}
+.btn-cancel:hover{background:rgba(255,255,255,.1);}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header-logo">
+    <a href="painel.html" class="logo-link">
+      <img src="images/logo_new.png" alt="Logo" class="header-logo">
+    </a>
+  </div>
+  
+  <div class="header">
+    <h1>🔒 Bloquear Conta</h1>
+    <button onclick="window.location.href='registros.html'">← Voltar</button>
+  </div>
+
+  <div class="warning-block">
+    ⚠️ O usuário receberá uma notificação sobre o bloqueio ao tentar fazer login.
+  </div>
+
+  <div class="info-card">
+    <h3>📋 Informações da Conta</h3>
+    <div class="info-row">
+      <span class="info-label">Usuário:</span>
+      <span class="info-value" id="account-name">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Cargo:</span>
+      <span class="info-value" id="account-role">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Discord:</span>
+      <span class="info-value" id="account-discord">-</span>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <h3>⏱️ Duração do Bloqueio</h3>
+    <div class="days-grid" id="days-grid"></div>
+  </div>
+
+  <div class="form-group">
+    <label>📝 Motivo do Bloqueio</label>
+    <textarea id="motivo" placeholder="Descreva o motivo do bloqueio..." maxlength="300"></textarea>
+    <small style="color:#96a4c4; margin-top:5px; display:block;">Máximo de 300 caracteres</small>
+  </div>
+
+  <div class="action-buttons">
+    <button class="btn-action btn-cancel" onclick="cancelar()">CANCELAR</button>
+    <button class="btn-action btn-confirm" id="btn-block" onclick="confirmarBloqueio()" disabled>BLOQUEAR CONTA</button>
+  </div>
+</div>
+
+<script>
+const accountId = sessionStorage.getItem('blockAccountId');
+if(!accountId) window.location.href = 'registros.html';
+
+let contaDados = null;
+let diasSelecionados = null;
+
+function carregarConta(){
+  const contas = JSON.parse(localStorage.getItem('accounts') || '[]');
+  contaDados = contas.find(c => c.username === accountId);
+  
+  if(!contaDados){
+    alert('Conta não encontrada!');
+    window.location.href = 'registros.html';
+    return;
+  }
+  
+  document.getElementById('account-name').textContent = contaDados.username;
+  document.getElementById('account-role').textContent = contaDados.role || 'Indefinido';
+  document.getElementById('account-discord').textContent = contaDados.discord || 'Não vinculado';
+}
+
+function gerarBotoesDias(){
+  const grid = document.getElementById('days-grid');
+  for(let i = 1; i <= 20; i++){
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'day-btn';
+    btn.textContent = i;
+    btn.onclick = () => selecionarDias(i, btn);
+    grid.appendChild(btn);
+  }
+}
+
+function selecionarDias(dias, btn){
+  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  diasSelecionados = dias;
+  verificarFormulario();
+}
+
+function verificarFormulario(){
+  const motivo = document.getElementById('motivo').value.trim();
+  const formValido = diasSelecionados && motivo.length > 0;
+  document.getElementById('btn-block').disabled = !formValido;
+}
+
+document.getElementById('motivo').addEventListener('input', verificarFormulario);
+
+function cancelar(){
+  if(confirm('Cancelar bloqueio?')){
+    sessionStorage.removeItem('blockAccountId');
+    window.location.href = 'registros.html';
+  }
+}
+
+function confirmarBloqueio(){
+  if(!diasSelecionados){
+    alert('Selecione a duração do bloqueio!');
+    return;
+  }
+  
+  const motivo = document.getElementById('motivo').value.trim();
+  if(!motivo){
+    alert('Digite o motivo do bloqueio!');
+    return;
+  }
+  
+  const dataDesbloqueio = new Date();
+  dataDesbloqueio.setDate(dataDesbloqueio.getDate() + diasSelecionados);
+  
+  let contas = JSON.parse(localStorage.getItem('accounts') || '[]');
+  const indexConta = contas.findIndex(c => c.username === accountId);
+  
+  if(indexConta === -1){
+    alert('Conta não encontrada!');
+    return;
+  }
+  
+  // Registrar bloqueio
+  contas[indexConta].bloqueado = true;
+  contas[indexConta].blockedUntil = dataDesbloqueio.toISOString();
+  contas[indexConta].blockedReason = motivo;
+  contas[indexConta].blockedBy = sessionStorage.getItem('loggedUser') || 'Admin';
+  contas[indexConta].blockedAt = new Date().toISOString();
+  
+  localStorage.setItem('accounts', JSON.stringify(contas));
+  
+  // Adicionar ao sistema de punições
+  const STORAGE_BLOCKED = 'hospital_contas_bloqueadas';
+  const STORAGE_KEY = 'hospital_punicoes';
+  
+  let blocked = JSON.parse(localStorage.getItem(STORAGE_BLOCKED) || '[]');
+  if(!blocked.includes(accountId)){
+    blocked.push(accountId);
+    localStorage.setItem(STORAGE_BLOCKED, JSON.stringify(blocked));
+  }
+  
+  let punicoes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  const punicao = {
+    id: Math.random().toString(36).slice(2),
+    admin: sessionStorage.getItem('loggedUser') || 'Admin',
+    type: 'banimento',
+    user: accountId,
+    reason: motivo,
+    duration: `${diasSelecionados} dia(s)`,
+    createdAt: new Date().toISOString(),
+    expiration: dataDesbloqueio.toISOString(),
+    active: true
+  };
+  punicoes.push(punicao);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(punicoes));
+  
+  alert(`✅ Conta bloqueada por ${diasSelecionados} dia(s)!`);
+  sessionStorage.removeItem('blockAccountId');
+  window.location.href = 'registros.html';
+}
+
+carregarConta();
+gerarBotoesDias();
+</script>
+</body>
+</html>

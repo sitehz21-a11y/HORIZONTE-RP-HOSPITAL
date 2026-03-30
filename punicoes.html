@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Punições | Sistema Hospital</title>
+<link rel="stylesheet" href="styles.css" />
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#0b1320;color:#fff;}
+.logo{font-size:1.45rem;font-weight:bold;color:#57a4ff;margin-bottom:24px;}
+.main{margin-left:265px;padding:24px 28px 48px;min-height:100vh;}
+.page-header{margin-bottom:18px;}
+.page-header h1{margin:0;font-size:2rem;color:#e8f4ff;}
+.page-header p{margin:6px 0 0;color:#9bb7db;}
+.tabs{display:flex;gap:8px;margin:14px 0 16px;flex-wrap:wrap;}
+.tab-btn{border:1px solid rgba(120,180,255,.3);background:rgba(15,24,38,.65);color:#dcecff;padding:9px 14px;border-radius:8px;cursor:pointer;transition:.2s;}
+.tab-btn.active{background:#2c6ef5;color:#fff;border-color:#2c6ef5;}
+.section{display:none;background:linear-gradient(145deg, rgba(11,23,46,.72), rgba(8,16,31,.88));border:1px solid rgba(92,138,236,.32);border-radius:14px;padding:18px;box-shadow:0 12px 27px rgba(0,0,0,.38);}
+.section.active{display:block;}
+.field{margin-bottom:12px;}
+.field label{display:block;margin-bottom:5px;color:#b6cbef;font-weight:600;}
+.field input,.field select,.field textarea{width:100%;background:rgba(11,23,37,.78);border:1px solid rgba(129,168,243,.4);color:#eff4ff;padding:9px 11px;border-radius:8px;font-size:.95rem;}
+.field textarea{resize:vertical;min-height:80px;}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+.btn{border:none;border-radius:.65rem;padding:10px 14px;font-weight:700;cursor:pointer;transition:.2s;}
+.btn-primary{background:#2f78ff;color:#fff;}
+.btn-danger{background:#ff4f5a;color:#fff;}
+.btn-secondary{background:rgba(149,168,207,.14);color:#d9ebff;}
+.btn:hover{opacity:.93;}
+.info-box{margin:12px 0;padding:10px;border:1px dashed rgba(150,190,255,.3);background:rgba(15,25,45,.62);border-radius:8px;color:#b3c9e8;font-size:.9rem;}
+.table{width:100%;border-collapse:collapse;margin-top:10px;}
+.table th,.table td{padding:8px 10px;border:1px solid rgba(124,162,216,.26);font-size:.9rem;color:#eaf1ff;}
+.table th{background:rgba(26,50,96,.6);text-align:left;}
+.status-chip{padding:3px 8px;border-radius:8px;font-size:.78rem;font-weight:700;}
+.status-activo{background:rgba(55,206,110,.23);color:#9fe8b4;}
+.status-inativo{background:rgba(255,125,125,.25);color:#ffc0c0;}
+</style>
+</head>
+<body>
+
+<div class="main">
+  <div class="page-header">
+    <h1>Punições</h1>
+    <p>Gerencie punições e desbloqueios de maneira automática e manual.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="apply">Aplicar punição</button>
+    <button class="tab-btn" data-tab="remove">Retirar punição</button>
+    <button class="tab-btn" data-tab="unlock">Desbloquear conta</button>
+    <button class="tab-btn" data-tab="logs">Log punição</button>
+  </div>
+
+  <div class="section active" id="section-apply">
+    <div class="actions">
+      <button class="btn btn-primary" id="applyNowBtn">Aplicar agora</button>
+      <button class="btn btn-secondary" id="scheduleBtn">Agendar punição</button>
+    </div>
+    <p class="info-box">Selecione modelo de punição e preencha usuário, motivo e tempo. A punição será gravada em log.</p>
+
+    <div class="field">
+      <label>Modelo de punição</label>
+      <select id="punishType"><option value="banimento">Banimento</option><option value="castigo">Castigo</option><option value="expulsao">Expulsão</option></select>
+    </div>
+    <div class="field"><label>Usuário</label><input type="text" id="punishUser" placeholder="nome#0000" /></div>
+    <div class="field"><label>Motivo</label><textarea id="punishReason" placeholder="Motivo da punição"></textarea></div>
+    <div class="field"><label>Tempo (em dias, 0 = permanente)</label><input type="number" id="punishTime" min="0" value="0" /></div>
+    <div class="field" id="scheduleField" style="display:none;"><label>Data/Hora de aplicação</label><input type="datetime-local" id="punishSchedule" /></div>
+    <div class="actions">
+      <button class="btn btn-primary" id="confirmPunish">Confirmar</button>
+      <button class="btn btn-danger" id="cancelPunish">Cancelar</button>
+    </div>
+    <p id="applyMessage" class="info-box" style="display:none"></p>
+  </div>
+
+  <div class="section" id="section-remove">
+    <div class="field">
+      <label>Pesquisar usuário punido</label>
+      <input type="text" id="searchPunished" placeholder="Digite nome do usuário" />
+    </div>
+    <div id="punishedList"></div>
+  </div>
+
+  <div class="section" id="section-unlock">
+    <div class="field">
+      <label>Contas bloqueadas</label>
+      <select id="blockedAccounts" size="6" style="width:100%;background:rgba(12,20,34,.8);border:1px solid rgba(123,164,244,.3);color:#e9f2ff;border-radius:8px;padding:8px;"></select>
+    </div>
+    <div class="actions"><button class="btn btn-primary" id="unlockAccount">Desbloquear conta</button></div>
+    <p id="unlockMessage" class="info-box" style="display:none"></p>
+  </div>
+
+  <div class="section" id="section-logs">
+    <table class="table" id="punishLogTable">
+      <thead><tr><th>Data/Hora</th><th>ADM</th><th>Usuário</th><th>Tipo</th><th>Motivo</th><th>Tempo</th><th>Expiração</th><th>Status</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'hospital_punicoes';
+const STORAGE_BLOCKED = 'hospital_contas_bloqueadas';
+
+const state = {
+  punicoes: JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'),
+  blocked: JSON.parse(localStorage.getItem(STORAGE_BLOCKED) || '[]')
+};
+
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.punicoes));
+  localStorage.setItem(STORAGE_BLOCKED, JSON.stringify(state.blocked));
+}
+
+function renderLogs(){
+  const tbody = document.querySelector('#punishLogTable tbody');
+  tbody.innerHTML='';
+  if(!state.punicoes.length){ tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:#aac3e7">Nenhuma punição registrada.</td></tr>'; return; }
+  state.punicoes.slice().reverse().forEach(item=>{
+    const exp = item.expiration ? new Date(item.expiration).toLocaleString() : 'permanente';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${new Date(item.createdAt).toLocaleString()}</td><td>${item.admin}</td><td>${item.user}</td><td>${item.type}</td><td>${item.reason}</td><td>${item.duration}</td><td>${exp}</td><td><span class="status-chip ${item.active ? 'status-activo' : 'status-inativo'}">${item.active ? 'Ativa' : 'Retirada'}</span></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderPunishedList(filter=''){
+  const list = document.getElementById('punishedList');
+  const active = state.punicoes.filter(item=>item.active && item.user.toLowerCase().includes(filter.toLowerCase()));
+  if(active.length===0){ list.innerHTML='<p class="info-box">Nenhum usuário punido encontrado.</p>'; return; }
+
+  const tabela = document.createElement('table'); tabela.className='table';
+  tabela.innerHTML='<thead><tr><th>Usuário</th><th>Tipo</th><th>Motivo</th><th>Tempo</th><th>Ações</th></tr></thead>';
+  const tb = document.createElement('tbody');
+  active.forEach(item=>{
+    const row = document.createElement('tr');
+    row.innerHTML=`<td>${item.user}</td><td>${item.type}</td><td>${item.reason}</td><td>${item.duration}</td><td><button class="btn btn-secondary" style="padding:6px 9px;margin:0;" data-id="${item.id}">Retirar</button></td>`;
+    const btn=row.querySelector('button');
+    btn.addEventListener('click',()=>retirarPunicao(item.id));
+    tb.appendChild(row);
+  });
+  tabela.appendChild(tb);
+  list.innerHTML='';
+  list.appendChild(tabela);
+}
+
+function renderBlocked(){
+  const select = document.getElementById('blockedAccounts');
+  select.innerHTML='';
+  if(!state.blocked.length){ select.innerHTML='<option disabled>Nenhuma conta bloqueada</option>'; return; }
+  state.blocked.forEach(acc=>{
+    const opt=document.createElement('option'); opt.value=acc; opt.textContent=acc; select.appendChild(opt);
+  });
+}
+
+function clearApplyForm(){
+  document.getElementById('punishType').value='banimento';
+  document.getElementById('punishUser').value='';
+  document.getElementById('punishReason').value='';
+  document.getElementById('punishTime').value='';
+  document.getElementById('punishSchedule').value='';
+}
+
+function applyPunicao(){
+  const type = document.getElementById('punishType').value;
+  const user = document.getElementById('punishUser').value.trim();
+  const reason = document.getElementById('punishReason').value.trim();
+  const durationRaw = document.getElementById('punishTime').value.trim();
+  const schedule = document.getElementById('punishSchedule').value;
+  const message = document.getElementById('applyMessage');
+  const isScheduled = document.getElementById('scheduleField').style.display === 'block';
+
+  if(!user || !reason){
+    message.style.display='block'; message.textContent='Preencha usuário e motivo.'; message.style.border='1px solid rgba(255,120,120,.4)';
+    return;
+  }
+
+  if(isScheduled && !schedule){
+    message.style.display='block'; message.textContent='Selecione data/hora para agendar.'; message.style.border='1px solid rgba(255,120,120,.4)';
+    return;
+  }
+
+  let duration;
+  let expiration = null;
+  if(durationRaw === '' || durationRaw === '0'){ duration = 'permanente'; }
+  else {
+    const days = Number(durationRaw);
+    if(isNaN(days) || days <= 0){
+      message.style.display='block'; message.textContent='Tempo inválido: use 0 para permanente ou número de dias.'; message.style.border='1px solid rgba(255,120,120,.4)';
+      return;
+    }
+    duration = `${days} dia(s)`;
+    const exp = new Date(startAt);
+    exp.setDate(exp.getDate() + days);
+    expiration = exp.toISOString();
+  }
+
+  const createdAt = startAt.toISOString();
+  const isFuture = startAt > now;
+  const aplicacao = {
+    id:Math.random().toString(36).slice(2),
+    admin:'Admin',
+    type,
+    user,
+    reason,
+    duration,
+    createdAt,
+    expiration,
+    active:true,
+    scheduled:isScheduled || isFuture
+  };
+
+  state.punicoes.push(aplicacao);
+
+  if(type==='banimento' && !state.blocked.includes(user)){
+    state.blocked.push(user);
+  }
+
+  saveState();
+  renderLogs();
+  renderPunishedList(document.getElementById('searchPunished').value);
+  renderBlocked();
+  clearApplyForm();
+
+  message.style.display='block';
+  message.textContent = isScheduled || isFuture ? 'Punição agendada com sucesso!' : 'Punição aplicada agora com sucesso!';
+  message.style.border='1px solid rgba(122,222,163,.4)';
+}
+
+
+function retirarPunicao(id){
+  const puni = state.punicoes.find(i=>i.id===id);
+  if(!puni) return;
+  puni.active=false;
+  if(puni.type==='banimento'){
+    state.blocked = state.blocked.filter(acc=>acc!==puni.user);
+  }
+  saveState(); renderLogs(); renderPunishedList(document.getElementById('searchPunished').value); renderBlocked();
+}
+
+function unlockAccount(){
+  const sel = document.getElementById('blockedAccounts');
+  const user = sel.value;
+  const msg = document.getElementById('unlockMessage');
+  if(!user){
+    msg.style.display='block'; msg.textContent='Selecione uma conta para desbloquear.'; msg.style.border='1px solid rgba(255,120,120,.4)';
+    return;
+  }
+
+  state.blocked = state.blocked.filter(item=>item!==user);
+
+  // Marca punições de banimento ativas como desativadas no log
+  state.punicoes = state.punicoes.map(puni => {
+    if(puni.user === user && puni.type === 'banimento' && puni.active){
+      return {...puni, active:false, notes:'Desbloqueado manualmente pelo ADM'};
+    }
+    return puni;
+  });
+
+  // Atualizar status da conta no accounts
+  let contas = JSON.parse(localStorage.getItem('accounts') || '[]');
+  const indexConta = contas.findIndex(c => c.username === user);
+  if(indexConta !== -1){
+    contas[indexConta].bloqueado = false;
+    delete contas[indexConta].blockedUntil;
+    delete contas[indexConta].blockedReason;
+    delete contas[indexConta].blockedBy;
+    delete contas[indexConta].blockedAt;
+    localStorage.setItem('accounts', JSON.stringify(contas));
+  }
+
+  saveState(); renderBlocked(); renderLogs(); renderPunishedList(document.getElementById('searchPunished').value);
+  msg.style.display='block'; msg.textContent=`Conta ${user} desbloqueada com sucesso.`; msg.style.border='1px solid rgba(122,222,163,.4)';
+}
+
+function setup(){
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('section-'+btn.dataset.tab).classList.add('active');
+  }));
+
+  document.getElementById('applyNowBtn').addEventListener('click', ()=>{
+    document.getElementById('scheduleField').style.display = 'none';
+    document.getElementById('punishSchedule').value = '';
+  });
+  document.getElementById('scheduleBtn').addEventListener('click', ()=>{
+    document.getElementById('scheduleField').style.display = 'block';
+  });
+
+  document.getElementById('confirmPunish').addEventListener('click', ()=>{
+    const isScheduled = document.getElementById('scheduleField').style.display === 'block';
+    applyPunicao(isScheduled);
+  });
+  document.getElementById('cancelPunish').addEventListener('click', clearApplyForm);
+  document.getElementById('searchPunished').addEventListener('input', (e)=>renderPunishedList(e.target.value));
+  document.getElementById('unlockAccount').addEventListener('click', unlockAccount);
+
+  renderLogs(); renderPunishedList(''); renderBlocked();
+}
+
+window.addEventListener('DOMContentLoaded', setup);
+</script>
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reset Sistema | Painel Hospital</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+body{margin:0; font-family:Arial,sans-serif; background:#0b1320; color:white;}
+.reset-container{margin-left:250px; padding:30px; min-height:100vh; display:flex; align-items:center; justify-content:center;}
+.reset-panel{background:linear-gradient(145deg, rgba(200,0,0,.15) 0%, rgba(100,0,0,.1) 100%); border:2px solid rgba(255,100,100,.3); border-radius:16px; padding:30px; max-width:500px; width:100%;}
+.reset-panel h1{margin:0 0 10px; color:#ff6b6b; font-size:1.8rem;}
+.reset-panel p{color:#ffb3b3; margin:8px 0;}
+.reset-warning{background:rgba(255,100,100,.15); border-left:4px solid #ff6b6b; padding:12px; border-radius:8px; color:#ffcccc; margin:15px 0; font-size:.9rem;}
+.field{margin:15px 0;}
+.field label{display:block; color:#ffb3b3; font-weight:600; margin-bottom:6px;}
+.field input{width:100%; background:rgba(255,100,100,.1); border:1px solid rgba(255,100,100,.3); color:white; padding:10px 12px; border-radius:8px; font-size:.95rem;}
+.field input:focus{outline:none; border-color:#ff6b6b; box-shadow:0 0 0 2px rgba(255,100,100,.25);}
+.btn-reset{background:#ff6b6b; color:white; border:none; padding:12px; border-radius:8px; cursor:pointer; font-weight:700; width:100%; margin-top:15px; transition:.2s;}
+.btn-reset:hover{background:#ff4f5a;}
+.btn-cancel{background:rgba(255,255,255,.05); color:#ffb3b3; border:1px solid rgba(255,100,100,.2); padding:12px; border-radius:8px; cursor:pointer; width:100%; margin-top:8px; font-weight:600;}
+.btn-cancel:hover{background:rgba(255,100,100,.1);}
+#resetStatus{display:none; margin-top:15px; padding:10px; border-radius:8px; text-align:center; font-weight:600;}
+.success{background:rgba(100,255,100,.15); color:#90ff90; border:1px solid rgba(100,255,100,.3);}
+.error{background:rgba(255,100,100,.15); color:#ff6b6b; border:1px solid rgba(255,100,100,.3);}
+@media(max-width:900px){ .reset-container{margin-left:0;} }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="reset-container">
+  <div class="reset-panel">
+    <h1>⚠️ RESET DO SISTEMA</h1>
+    <p>Esta ação é <strong>irreversível</strong> e excluirá todas as contas criadas no sistema.</p>
+    
+    <div class="reset-warning">
+      ⛔ AVISO: Ao confirmar, TODAS as contas de usuário registradas no site serão permanentemente deletadas. Esta ação não pode ser desfeita!
+    </div>
+
+    <div class="field">
+      <label>Senha do Administrador</label>
+      <input type="password" id="adminPassword" placeholder="Digite a senha de admin para confirmar">
+    </div>
+
+    <div class="field">
+      <label><input type="checkbox" id="confirmDeleteAll"> Eu entendo que isto é irreversível</label>
+    </div>
+
+    <button class="btn-reset" id="confirmResetBtn">EXCLUIR TODAS AS CONTAS</button>
+    <button class="btn-cancel" onclick="window.history.back()">Cancelar</button>
+
+    <div id="resetStatus"></div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+const ADMIN_PASSWORD = 'admin123';
+
+document.getElementById('confirmResetBtn').addEventListener('click', () => {
+  const password = document.getElementById('adminPassword').value;
+  const confirmed = document.getElementById('confirmDeleteAll').checked;
+  const status = document.getElementById('resetStatus');
+
+  if (!password) {
+    status.style.display = 'block';
+    status.className = 'error';
+    status.textContent = 'Digite a senha de administrador.';
+    return;
+  }
+
+  if (!confirmed) {
+    status.style.display = 'block';
+    status.className = 'error';
+    status.textContent = 'Você precisa confirmar que entende a irreversibilidade da ação.';
+    return;
+  }
+
+  if (password !== ADMIN_PASSWORD) {
+    status.style.display = 'block';
+    status.className = 'error';
+    status.textContent = 'Senha de administrador incorreta.';
+    return;
+  }
+
+  // Excluir todas as contas
+  localStorage.removeItem('accounts');
+  localStorage.removeItem('accountLogs');
+  localStorage.removeItem('discordUser');
+  localStorage.removeItem('hospital_ticket_history');
+  localStorage.removeItem('hospital_messages_schedule');
+  localStorage.removeItem('hospital_role_permissions');
+  sessionStorage.removeItem('loggedUser');
+
+  status.style.display = 'block';
+  status.className = 'success';
+  status.textContent = '✅ Sistema resetado com sucesso! Todas as contas foram excluídas. Redirecionando...';
+
+  setTimeout(() => {
+    window.location.href = 'index.html';
+  }, 2000);
+});
+</script>
+</body>
+</html>

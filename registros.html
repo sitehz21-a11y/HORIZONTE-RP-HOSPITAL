@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registros | Painel Horizon</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+body{margin:0; font-family:Arial,sans-serif; background:#0b1320; color:white;}
+.logo{font-size:20px; font-weight:bold; margin-bottom:30px;}
+.main{margin-left:250px; padding:30px; position:relative; display:flex; flex-direction:column; min-height:100vh;}
+.page-header{margin-bottom:30px;}
+.page-header h1{margin:0 0 20px; font-size:28px; color:#e8f2ff;}
+.controls{display:flex; gap:15px; margin-bottom:20px; flex-wrap:wrap;}
+.search-box{flex:1; min-width:250px; background:rgba(15,27,57,.5); border-radius:12px; padding:12px 15px; border:1px solid rgba(255,255,255,.15);}
+.search-box input{width:100%; background:transparent; border:none; color:white; font-size:.95rem;}
+.search-box input::placeholder{color:rgba(255,255,255,.5);}
+.search-box input:focus{outline:none;}
+.filter-group{display:flex; gap:10px; padding:12px 15px; background:rgba(15,27,57,.5); border-radius:12px; border:1px solid rgba(255,255,255,.15);}
+.filter-btn{background:rgba(255,255,255,.05); color:white; border:1px solid rgba(255,255,255,.15); padding:8px 16px; border-radius:6px; cursor:pointer; font-size:.9rem; transition:all .3s;}
+.filter-btn.active{background:#2f86ff; border-color:#2f86ff;}
+.filter-btn:hover{background:rgba(255,255,255,.1);}
+.accounts-table{background:rgba(15,27,57,.5); border-radius:12px; border:1px solid rgba(255,255,255,.15); overflow-x:auto; display:block;}
+.table-header{display:grid; grid-template-columns:1.2fr 1fr 0.8fr 1.2fr 1.5fr 1.5fr 60px; gap:15px; padding:18px 20px; background:rgba(47,134,255,.1); border-bottom:2px solid rgba(47,134,255,.2); font-weight:600; color:#90c5ff; font-size:.9rem; position:sticky; top:0; min-width:min-content;}
+.table-row{display:grid; grid-template-columns:1.2fr 1fr 0.8fr 1.2fr 1.5fr 1.5fr 60px; gap:15px; padding:15px 20px; border-bottom:1px solid rgba(255,255,255,.08); align-items:center; transition:all .3s; min-width:min-content;}
+.table-row:hover{background:rgba(47,134,255,.08);}
+.table-row:last-child{border-bottom:none;}
+.cell-name{color:#e8f2ff; font-weight:500;}
+.cell-role{background:rgba(47,134,255,.15); color:#90c5ff; padding:5px 10px; border-radius:6px; display:inline-block; font-size:.85rem;}
+.cell-gender{font-size:.9rem; color:#bddcff;}
+.cell-discord{color:#7a8ba8; font-size:.9rem; font-family:monospace;}
+.cell-date{color:#96a4c4; font-size:.9rem;}
+.menu-more{background:none; border:none; color:white; cursor:pointer; font-size:20px; padding:0; width:40px; height:40px; display:flex; align-items:center; justify-content:center; border-radius:6px; transition:all .3s;}
+.menu-more:hover{background:rgba(255,255,255,.1);}
+.no-accounts{text-align:center; padding:60px 20px; color:#96a4c4;}
+.no-accounts-icon{font-size:64px; margin-bottom:20px;}
+
+.context-menu{position:absolute; background:#1a2847; border:1px solid rgba(255,255,255,.15); border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.4); z-index:100; display:none; min-width:180px; max-height:300px; overflow-y:auto;}
+.context-menu.active{display:block;}
+.context-item{color:#e8f2ff; padding:12px 16px; cursor:pointer; font-size:.9rem; display:flex; align-items:center; gap:8px; transition:all .2s;}
+.context-item:hover{background:rgba(47,134,255,.2);}
+.context-item.danger{color:#ff6b6b;}
+.context-item.danger:hover{background:rgba(255,107,107,.1);}
+
+.admin-password-modal{display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.8); z-index:1000; align-items:center; justify-content:center; padding:20px;}
+.admin-password-modal.active{display:flex;}
+.admin-modal-content{background:linear-gradient(135deg, #0a1628 0%, #0e1f35 100%); border-radius:16px; max-width:450px; width:100%; border:2px solid rgba(47,134,255,.3); box-shadow:0 12px 40px rgba(0,0,0,.6);}
+.admin-modal-header{padding:30px; text-align:center; border-bottom:1px solid rgba(255,255,255,.1);}
+.admin-modal-header h2{margin:0 0 10px; color:#e8f2ff; font-size:24px;}
+.admin-modal-header p{margin:0; color:#96a4c4; font-size:.95rem;}
+.admin-modal-body{padding:30px;}
+.admin-modal-body input{width:100%; background:rgba(255,255,255,.08); border:1px solid rgba(47,134,255,.3); color:white; padding:14px; border-radius:10px; font-size:1rem; margin-bottom:15px; font-weight:bold;}
+.admin-modal-body input::placeholder{color:rgba(255,255,255,.4);}
+.admin-modal-body input:focus{outline:none; border-color:#2f86ff; background:rgba(255,255,255,.12);}
+.admin-modal-buttons{display:flex; gap:10px;}
+.admin-modal-buttons button{flex:1; padding:12px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:.95rem; transition:all .3s;}
+.btn-confirm{background:#2f86ff; color:white;}
+.btn-confirm:hover{background:#3a92ff;}
+.btn-cancel{background:rgba(255,255,255,.05); color:#e8f2ff; border:1px solid rgba(255,255,255,.1);}
+.btn-cancel:hover{background:rgba(255,255,255,.1);}
+
+@media (max-width:1200px){ .accounts-table{overflow-x:auto;} }
+@media (max-width:900px){ .main{margin-left:0; padding:14px;} .sidebar{position:relative; width:100%; height:auto; padding:15px;} .controls{flex-direction:column;} .accounts-table{overflow-x:auto;} }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+
+
+<div class="main">
+  <div class="page-header-logo">
+    <a href="painel.html" class="logo-link">
+      <img src="images/logo_new.png" alt="Logo" class="header-logo">
+    </a>
+  </div>
+  
+  <div class="page-header">
+    <h1>Registros de Contas</h1>
+  </div>
+
+  <div class="controls">
+    <div class="search-box">
+      <input type="text" id="search-input" placeholder="🔍 Pesquisar por nome, ID, Discord..." />
+    </div>
+    <div class="filter-group">
+      <button class="filter-btn active" onclick="filtrarPor('todos')">Todos</button>
+      <button class="filter-btn" onclick="filtrarPor('recentes')">Recentes</button>
+      <button class="filter-btn" onclick="filtrarPor('antigos')">Antigos</button>
+      <button class="filter-btn" onclick="filtrarPor('tobi')">Tobi</button>
+    </div>
+  </div>
+
+  <div class="accounts-table">
+    <div class="table-header">
+      <div>Nome</div>
+      <div>Cargo</div>
+      <div>Sexo</div>
+      <div>IP</div>
+      <div>Plataforma</div>
+      <div>Data de Registro</div>
+      <div></div>
+    </div>
+    <div id="accounts-list">
+      <div class="no-accounts">
+        <div class="no-accounts-icon">📋</div>
+        <p>Carregando contas...</p>
+      </div>
+    </div>
+  </div>
+  
+  <footer class="watermark-foot">2026 © Horizonte Roleplay Hospital - UCP desenvolvido por Criarp</footer>
+</div>
+
+<!-- Context Menu -->
+<div class="context-menu" id="context-menu">
+  <div class="context-item" onclick="abrirEditar(currentAccountId)">✏️ Editar Conta</div>
+  <div class="context-item" onclick="abrirBloqueio(currentAccountId)">🔒 Bloquear Conta</div>
+  <div class="context-item" onclick="abrirEntrar(currentAccountId)">👤 Entrar na Conta</div>
+  <div class="context-item" onclick="abrirRelatorio(currentAccountId)">📊 Relatório</div>
+  <hr style="margin:5px 0; border:none; border-top:1px solid rgba(255,255,255,.1);">
+  <div class="context-item danger" onclick="abrirExcluir(currentAccountId)">🗑️ Excluir Conta</div>
+</div>
+
+<!-- Admin Password Modal -->
+<div class="admin-password-modal" id="admin-modal">
+  <div class="admin-modal-content">
+    <div class="admin-modal-header">
+      <h2>🔐 PAINEL ADM</h2>
+      <p id="admin-modal-title">Insira sua senha de administrador</p>
+    </div>
+    <div class="admin-modal-body">
+      <input type="password" id="admin-password" placeholder="Senha ADM" />
+      <div class="admin-modal-buttons">
+        <button class="btn-confirm" onclick="confirmarSenhaAdmin()">CONFIRMAR</button>
+        <button class="btn-cancel" onclick="fecharAdminModal()">CANCELAR</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let loggedUser = sessionStorage.getItem('loggedUser');
+if(!loggedUser) window.location.href = 'index.html';
+
+let todosAsContas = [];
+let contasExibidas = [];
+let currentAccountId = null;
+let pendingAction = null;
+
+const SENHA_ADMIN = 'criarp25';
+
+function navegarPara(url){
+  if(url !== '#') window.location.href = url;
+}
+
+function carregarContas(){
+  todosAsContas = JSON.parse(localStorage.getItem('accounts') || '[]');
+  contasExibidas = [...todosAsContas];
+  exibirContas();
+}
+
+function exibirContas(){
+  const lista = document.getElementById('accounts-list');
+  
+  if(contasExibidas.length === 0){
+    lista.innerHTML = '<div class="no-accounts"><div class="no-accounts-icon">📭</div><p>Nenhuma conta encontrada.</p></div>';
+    return;
+  }
+  
+  lista.innerHTML = contasExibidas.map((conta, idx) => {
+    const genderEmoji = conta.gender === 'feminino' ? '👩' : '👨';
+    
+    return `
+      <div class="table-row">
+        <div class="cell-name">${conta.username}</div>
+        <div><span class="cell-role">${conta.role || 'Indefinido'}</span></div>
+        <div class="cell-gender">${genderEmoji} ${conta.gender === 'feminino' ? 'Fem.' : 'Masc.'}</div>
+        <div class="cell-discord">${conta.ipRegistro || 'N/A'}</div>
+        <div class="cell-discord">${conta.plataforma || 'Desktop'} • ${conta.so || '?'}</div>
+        <div class="cell-date">${new Date(conta.registeredAt).toLocaleDateString('pt-BR')}</div>
+        <button class="menu-more" onclick="abrirContextMenu(event, '${conta.username}')">⋮</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function abrirContextMenu(event, accountId){
+  event.stopPropagation();
+  currentAccountId = accountId;
+  
+  const menu = document.getElementById('context-menu');
+  const mainContainer = document.querySelector('.main');
+  const rect = event.target.getBoundingClientRect();
+  const mainRect = mainContainer.getBoundingClientRect();
+  
+  // Calcula posição relativa ao container main
+  let top = rect.top - mainRect.top + rect.height + 5;
+  let left = rect.left - mainRect.left - 150;
+  
+  // Garante que não saia da tela
+  if(left < 0) left = 10;
+  if(left + 200 > mainRect.width) left = mainRect.width - 210;
+  
+  menu.classList.add('active');
+  menu.style.top = top + 'px';
+  menu.style.left = left + 'px';
+  menu.style.position = 'absolute';
+}
+
+document.addEventListener('click', () => {
+  document.getElementById('context-menu').classList.remove('active');
+});
+
+function abrirAdminModal(action, accountId){
+  pendingAction = {action, accountId};
+  document.getElementById('admin-password').value = '';
+  document.getElementById('admin-modal').classList.add('active');
+  document.getElementById('admin-password').focus();
+}
+
+function confirmarSenhaAdmin(){
+  const senha = document.getElementById('admin-password').value;
+  
+  if(senha !== SENHA_ADMIN){
+    alert('Senha de administrador incorreta!');
+    return;
+  }
+  
+  fecharAdminModal();
+  
+  if(!pendingAction) return;
+  
+  const {action, accountId} = pendingAction;
+  
+  switch(action){
+    case 'editar':
+      sessionStorage.setItem('editAccountId', accountId);
+      window.location.href = 'editar-conta.html';
+      break;
+    case 'excluir':
+      sessionStorage.setItem('deleteAccountId', accountId);
+      window.location.href = 'excluir-conta.html';
+      break;
+    case 'bloquear':
+      sessionStorage.setItem('blockAccountId', accountId);
+      window.location.href = 'bloquear-conta.html';
+      break;
+    case 'entrar':
+      sessionStorage.setItem('enterAccountId', accountId);
+      sessionStorage.setItem('enterAccountPassword', document.getElementById('admin-password').value);
+      window.location.href = 'entrar-conta.html';
+      break;
+    case 'relatorio':
+      sessionStorage.setItem('reportAccountId', accountId);
+      window.location.href = 'relatorio-conta.html';
+      break;
+  }
+}
+
+function fecharAdminModal(){
+  document.getElementById('admin-modal').classList.remove('active');
+}
+
+function abrirEditar(accountId){
+  abrirAdminModal('editar', accountId);
+}
+
+function abrirExcluir(accountId){
+  abrirAdminModal('excluir', accountId);
+}
+
+function abrirBloqueio(accountId){
+  abrirAdminModal('bloquear', accountId);
+}
+
+function abrirEntrar(accountId){
+  abrirAdminModal('entrar', accountId);
+}
+
+function abrirRelatorio(accountId){
+  abrirAdminModal('relatorio', accountId);
+}
+
+document.getElementById('search-input').addEventListener('input', (e) => {
+  const termo = e.target.value.toLowerCase().trim();
+  
+  if(!termo){
+    contasExibidas = [...todosAsContas];
+  } else {
+    contasExibidas = todosAsContas.filter(conta =>
+      conta.username.toLowerCase().includes(termo) ||
+      conta.discord.toLowerCase().includes(termo) ||
+      conta.rg?.includes(termo)
+    );
+  }
+  
+  exibirContas();
+});
+
+function filtrarPor(filtro){
+  document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  
+  const agora = new Date();
+  const umMesAtras = new Date(agora.getTime() - 30 * 24 * 60 * 60 * 1000);
+  
+  if(filtro === 'recentes'){
+    contasExibidas = todosAsContas.filter(c => new Date(c.registeredAt) > umMesAtras);
+  } else if(filtro === 'antigos'){
+    contasExibidas = todosAsContas.filter(c => new Date(c.registeredAt) <= umMesAtras);
+  } else if(filtro === 'tobi'){
+    contasExibidas = todosAsContas.filter(c => c.role?.toLowerCase().includes('tobi'));
+  } else {
+    contasExibidas = [...todosAsContas];
+  }
+  
+  exibirContas();
+}
+
+carregarContas();
+</script>
+<script src="script.js"></script>
+</body>
+</html>

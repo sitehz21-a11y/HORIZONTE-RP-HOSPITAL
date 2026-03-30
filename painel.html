@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Administrativo Hospital</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+body{margin:0; font-family:Arial,sans-serif; background:#0b1320; color:white;}
+.logo-row{display:flex; justify-content:flex-start; align-items:center; margin-bottom:20px;}
+.logo{font-size:20px; font-weight:bold;}
+.main{margin-left:250px; padding:30px; display:flex; flex-direction:column; min-height:100vh;}
+.cards{display:flex; gap:20px; margin-top:20px; flex-wrap:wrap;}
+.card{background:#111f34; padding:20px; border-radius:10px; flex:1; min-width:150px;}
+.card h3{margin:0; font-size:14px; color:#8ea4c3;}
+.card p{font-size:22px; margin-top:10px;}
+.cards2{display:flex; gap:20px; margin-top:20px; flex-wrap:wrap;}
+.status{background:#111f34; padding:20px; margin-top:25px; border-radius:10px;}
+.bar{background:#1c2d49; height:10px; border-radius:5px; margin-bottom:15px;}
+.bar div{height:10px; background:#3b82f6; border-radius:5px;}
+.top-row{display:flex; justify-content:space-between; align-items:center; gap:12px;}
+.user-box{background:#111f34; border-radius:12px; padding:14px; margin-top:12px; display:flex; align-items:center; gap:12px;}
+.user-box img{width:45px; height:45px; border-radius:50%; object-fit:cover;}
+.user-box div{font-size:.9rem;}
+@media (max-width:900px){ .main{margin-left:0; padding:14px; } .sidebar{position:relative; width:100%; height:auto;} }
+</style>
+</head>
+<body>
+
+<div class="main">
+  <div class="page-header-logo">
+    <a href="painel.html" class="logo-link">
+      <img src="images/logo_new.png" alt="Logo" class="header-logo">
+    </a>
+  </div>
+  
+  <div class="top-row">
+    <div>
+      <h1>Seja bem-vindo ao Sistema Administrativo do Hospital, <span id="welcome-user">Usuário</span></h1>
+      <p>Dashboard para gerenciar o hospital dentro do servidor.</p>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card"><h3>Formulários</h3><p>0</p></div>
+    <div class="card"><h3>Membros</h3><p>0</p></div>
+    <div class="card"><h3>Pagamentos Realizados</h3><p>0</p></div>
+    <div class="card"><h3>Tickets Criados</h3><p>0</p></div>
+  </div>
+
+  <div class="cards2">
+    <div class="card"><h3>Banimentos</h3><p>0</p></div>
+    <div class="card"><h3>Castigos</h3><p>0</p></div>
+    <div class="card"><h3>Expulsões</h3><p>0</p></div>
+  </div>
+
+  <div class="status">
+    <h2>Estatísticas do Usuário</h2>
+    <p>Seus Tickets</p><div class="bar"><div style="width:60%"></div></div>
+    <p>Mensagens</p><div class="bar"><div style="width:70%"></div></div>
+    <p>Pagamentos</p><div class="bar"><div style="width:50%"></div></div>
+    <p>Ausências</p><div class="bar"><div style="width:30%"></div></div>
+    <p>Punições Aplicadas</p><div class="bar"><div style="width:40%"></div></div>
+    <p>Contratações / Remoções</p><div class="bar"><div style="width:55%"></div></div>
+  </div>
+  
+  <footer class="watermark-foot">2026 © Horizonte Roleplay Hospital - UCP desenvolvido por Criarp</footer>
+</div>
+
+<script src="script.js"></script>
+<script>
+function abrir(pagina){ alert('Você clicou em: ' + pagina); }
+
+// Mostrar nome do usuário
+const loggedUser = sessionStorage.getItem('loggedUser');
+if(!loggedUser){
+  window.location.href = 'index.html';
+} else {
+  document.getElementById('welcome-user').textContent = loggedUser;
+}
+
+// Toggle menu
+const menuToggle = document.getElementById('menu-toggle');
+document.getElementById('menu-toggle').addEventListener('click', function() {
+  const sidebar = document.querySelector('.sidebar');
+  const main = document.querySelector('.main');
+  sidebar.classList.toggle('closed');
+  const isClosed = sidebar.classList.contains('closed');
+
+  if (isClosed) {
+    main.style.marginLeft = '0';
+    menuToggle.style.left = '20px';
+  } else {
+    main.style.marginLeft = '250px';
+    menuToggle.style.left = '180px';
+  }
+});
+
+// Ajuste inicial caso comece fechado
+function ajustarTogglePorSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar.classList.contains('closed')) {
+    menuToggle.style.left = '20px';
+  } else {
+    menuToggle.style.left = '180px';
+  }
+}
+adjustarTogglePorSidebar();
+</script>
+</body>
+</html>

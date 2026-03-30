@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conta Bloqueada | Painel Horizon</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+html, body{margin:0; padding:0; width:100%; height:100%; font-family:Arial,sans-serif; background:#0b1320; color:white; display:flex; align-items:center; justify-content:center;}
+.blocked-container{text-align:center; max-width:500px; padding:40px 20px;}
+.blocked-icon{font-size:80px; margin-bottom:20px; animation:bounce 1s infinite;}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+.blocked-title{font-size:32px; font-weight:bold; color:#ff6b6b; margin:20px 0;}
+.blocked-message{color:#ffb3b3; font-size:1.1rem; margin:20px 0; line-height:1.6;}
+.blocked-card{background:rgba(255,107,107,.1); border:2px solid rgba(255,107,107,.3); border-radius:16px; padding:30px; margin:30px 0;}
+.blocked-info{text-align:left; color:#bddcff;}
+.blocked-info-row{display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,107,107,.2);}
+.blocked-info-row:last-child{border-bottom:none;}
+.blocked-label{color:#96a4c4; font-weight:600;}
+.blocked-value{color:#ffb3b3; font-weight:500;}
+.blocked-code{background:rgba(0,0,0,.3); padding:15px; border-radius:8px; margin:15px 0; font-family:monospace; word-break:break-all; color:#81d4fa;}
+.blocked-countdown{font-size:2.5rem; font-weight:bold; color:#ffa500; margin:20px 0;}
+.blocked-days{font-size:.95rem; color:#96a4c4; margin-top:10px;}
+.back-button{background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.15); color:#e8f2ff; padding:12px 24px; border-radius:8px; cursor:pointer; font-weight:600; margin-top:30px; font-size:.95rem; transition:all .3s;}
+.back-button:hover{background:rgba(255,255,255,.1);}
+.support-text{color:#96a4c4; font-size:.9rem; margin-top:30px;}
+</style>
+</head>
+<body>
+<div class="page-header-logo" style="position:fixed; top:20px; left:20px; z-index:10;">
+  <a href="index.html" class="logo-link">
+    <img src="images/logo_new.png" alt="Logo" class="header-logo">
+  </a>
+</div>
+
+<div class="blocked-container">
+  <div class="blocked-icon">🔒</div>
+  <div class="blocked-title">CONTA BLOQUEADA</div>
+  <div class="blocked-message">
+    Sua conta foi bloqueada e você não pode fazer login no momento.
+  </div>
+
+  <div class="blocked-card">
+    <div class="blocked-info">
+      <div class="blocked-info-row">
+        <span class="blocked-label">👤 Conta:</span>
+        <span class="blocked-value" id="blocked-username">-</span>
+      </div>
+      <div class="blocked-info-row">
+        <span class="blocked-label">⏰ Data do Bloqueio:</span>
+        <span class="blocked-value" id="blocked-date">-</span>
+      </div>
+      <div class="blocked-info-row">
+        <span class="blocked-label">👮 Bloqueado por:</span>
+        <span class="blocked-value" id="blocked-by">-</span>
+      </div>
+      <div class="blocked-info-row">
+        <span class="blocked-label">📋 Motivo:</span>
+        <span class="blocked-value" id="blocked-reason" style="display:block; margin-top:5px;">-</span>
+      </div>
+    </div>
+
+    <div class="blocked-countdown" id="blocked-countdown">15</div>
+    <div class="blocked-days">dias até o desbloqueio</div>
+  </div>
+
+  <div class="support-text">
+    Se você acredita que isso foi um erro, entre em contato com a administração.
+  </div>
+
+  <button class="back-button" onclick="voltarLogin()">← VOLTAR AO LOGIN</button>
+</div>
+
+<script>
+const blockedInfo = JSON.parse(sessionStorage.getItem('blockedInfo') || 'null');
+
+if(!blockedInfo){
+  window.location.href = 'index.html';
+}
+
+function formatarData(dataISO){
+  const data = new Date(dataISO);
+  return data.toLocaleDateString('pt-BR') + ' às ' + data.toLocaleTimeString('pt-BR');
+}
+
+function voltarLogin(){
+  sessionStorage.removeItem('blockedInfo');
+  window.location.href = 'index.html';
+}
+
+// Carregar informações
+document.getElementById('blocked-username').textContent = blockedInfo.username;
+document.getElementById('blocked-date').textContent = formatarData(blockedInfo.until);
+document.getElementById('blocked-by').textContent = blockedInfo.blockedBy;
+document.getElementById('blocked-reason').textContent = blockedInfo.reason || 'Nenhum motivo específico';
+document.getElementById('blocked-countdown').textContent = blockedInfo.daysRemaining;
+</script>
+</body>
+</html>

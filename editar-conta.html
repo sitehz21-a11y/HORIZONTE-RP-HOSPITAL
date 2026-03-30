@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editar Conta | Painel Horizon</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+body{margin:0; font-family:Arial,sans-serif; background:#0b1320; color:white; padding:20px;}
+.container{max-width:700px; margin:0 auto;}
+.edit-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;}
+.edit-header h1{margin:0; font-size:28px; color:#e8f2ff;}
+.edit-header button{background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.15); color:#e8f2ff; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:600;}
+.edit-header button:hover{background:rgba(255,255,255,.1);}
+.info-card{background:rgba(15,27,57,.5); border-radius:12px; padding:25px; border:1px solid rgba(255,255,255,.15); margin-bottom:25px;}
+.info-card h3{margin:0 0 20px; color:#90c5ff; text-transform:uppercase; font-size:.95rem; letter-spacing:1px;}
+.form-group{margin-bottom:20px;}
+.form-group label{display:block; color:#bddcff; margin-bottom:8px; font-weight:500; font-size:.9rem;}
+.form-group input,
+.form-group select,
+.form-group textarea{width:100%; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); color:white; padding:12px; border-radius:8px; font-size:.95rem; font-family:inherit;}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus{outline:none; border-color:#2f86ff; background:rgba(255,255,255,.12);}
+.form-group input:disabled{background:rgba(255,255,255,.03); color:#96a4c4; cursor:not-allowed;}
+.form-group.disabled input{background:rgba(255,255,255,.03); color:#96a4c4; cursor:not-allowed;}
+.form-row{display:grid; grid-template-columns:1fr 1fr; gap:15px;}
+.read-only-field{background:rgba(255,255,255,.03); color:#96a4c4; cursor:not-allowed; display:flex; align-items:center;}
+.discord-field{position:relative;}
+.btn-desvincular{position:absolute; right:10px; top:32px; background:rgba(255,107,107,.2); border:1px solid rgba(255,107,107,.4); color:#ff6b6b; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:.8rem;}
+.btn-desvincular:hover{background:rgba(255,107,107,.3);}
+.action-buttons{display:flex; gap:15px; margin-top:30px;}
+.btn-action{flex:1; padding:14px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:.95rem; transition:all .3s;}
+.btn-confirm{background:#2f86ff; color:white;}
+.btn-confirm:hover{background:#3a92ff;}
+.btn-cancel{background:rgba(255,255,255,.05); color:#e8f2ff; border:1px solid rgba(255,255,255,.15);}
+.btn-cancel:hover{background:rgba(255,255,255,.1);}
+.warning{background:rgba(255,152,0,.1); border-left:4px solid #ffa500; padding:12px; border-radius:6px; margin-bottom:20px; color:#ffb74d;}
+@media (max-width:600px){ .form-row{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header-logo">
+    <a href="painel.html" class="logo-link">
+      <img src="images/logo_new.png" alt="Logo" class="header-logo">
+    </a>
+  </div>
+  
+  <div class="edit-header">
+    <h1>✏️ Editar Conta</h1>
+    <button onclick="window.location.href='registros.html'">← Voltar</button>
+  </div>
+
+  <div class="warning">
+    ⚠️ Avisos: Não é possível alterar Discord, Data de Registro ou Servidor. Clique em "Cancelar" para desfazer alterações.
+  </div>
+
+  <div class="info-card">
+    <h3>📋 Informações da Conta</h3>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nome de Usuário</label>
+        <input type="text" id="username" placeholder="Digite o novo nome..." />
+      </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <input type="password" id="password" placeholder="Nova senha..." />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Cargo</label>
+        <input type="text" id="role" placeholder="Digite o cargo..." />
+      </div>
+      <div class="form-group">
+        <label>Sexo</label>
+        <select id="gender">
+          <option value="">Selecione...</option>
+          <option value="masculino">Masculino</option>
+          <option value="feminino">Feminino</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Servidor</label>
+        <input type="text" id="server" disabled />
+      </div>
+      <div class="form-group">
+        <label>Data de Registro</label>
+        <input type="text" id="registered" disabled />
+      </div>
+    </div>
+
+    <div class="form-group discord-field">
+      <label>Discord</label>
+      <input type="text" id="discord" disabled />
+      <button class="btn-desvincular" onclick="desvincularDiscord()">Desvincular</button>
+    </div>
+
+    <div class="form-group">
+      <label>RG</label>
+      <input type="text" id="rg" disabled />
+    </div>
+  </div>
+
+  <div class="action-buttons">
+    <button class="btn-action btn-cancel" onclick="cancelarEdicao()">CANCELAR</button>
+    <button class="btn-action btn-confirm" onclick="confirmarEdicao()">CONFIRMAR</button>
+  </div>
+</div>
+
+<script>
+const accountId = sessionStorage.getItem('editAccountId');
+if(!accountId) window.location.href = 'registros.html';
+
+let contaDados = null;
+let contaOriginal = null;
+
+function carregarConta(){
+  const contas = JSON.parse(localStorage.getItem('accounts') || '[]');
+  contaDados = contas.find(c => c.username === accountId);
+  
+  if(!contaDados){
+    alert('Conta não encontrada!');
+    window.location.href = 'registros.html';
+    return;
+  }
+  
+  contaOriginal = JSON.parse(JSON.stringify(contaDados));
+  
+  document.getElementById('username').value = contaDados.username;
+  document.getElementById('password').value = '';
+  document.getElementById('role').value = contaDados.role || '';
+  document.getElementById('gender').value = contaDados.gender || '';
+  document.getElementById('server').value = contaDados.server || '';
+  document.getElementById('registered').value = new Date(contaDados.registeredAt).toLocaleDateString('pt-BR');
+  document.getElementById('discord').value = contaDados.discord || 'N/A';
+  document.getElementById('rg').value = contaDados.rg || 'N/A';
+}
+
+function desvincularDiscord(){
+  if(confirm('Deseja realmente desvincular a conta Discord?')){
+    document.getElementById('discord').value = 'DESVINCULADO';
+  }
+}
+
+function cancelarEdicao(){
+  if(confirm('Cancelar todas as alterações?')){
+    sessionStorage.removeItem('editAccountId');
+    window.location.href = 'registros.html';
+  }
+}
+
+function confirmarEdicao(){
+  const novoUsername = document.getElementById('username').value.trim();
+  const novaSenha = document.getElementById('password').value;
+  const novoCargo = document.getElementById('role').value.trim();
+  const novoGenero = document.getElementById('gender').value;
+  const discordAtual = document.getElementById('discord').value;
+  
+  if(!novoUsername){
+    alert('Nome de usuário não pode estar vazio!');
+    return;
+  }
+  
+  let contas = JSON.parse(localStorage.getItem('accounts') || '[]');
+  const indexConta = contas.findIndex(c => c.username === accountId);
+  
+  if(indexConta === -1){
+    alert('Conta não encontrada!');
+    return;
+  }
+  
+  // Atualizar dados
+  contas[indexConta].username = novoUsername;
+  if(novaSenha) contas[indexConta].password = novaSenha;
+  contas[indexConta].role = novoCargo || 'Cargo em definição';
+  contas[indexConta].gender = novoGenero;
+  if(discordAtual === 'DESVINCULADO'){
+    contas[indexConta].discord = '';
+  }
+  
+  localStorage.setItem('accounts', JSON.stringify(contas));
+  
+  alert('✅ Conta atualizada com sucesso!');
+  sessionStorage.removeItem('editAccountId');
+  window.location.href = 'registros.html';
+}
+
+carregarConta();
+
+document.getElementById('password').addEventListener('focus', function(){
+  if(this.value === '') this.type = 'password';
+});
+</script>
+</body>
+</html>
