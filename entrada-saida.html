@@ -65,7 +65,21 @@ body{margin:0; font-family:Arial,sans-serif; background:#0b1320; color:white;}
 .applied-info{margin-top:4px;color:#a3c3e5;font-size:.86rem;}
 .success-text{color:#87f1b8; font-weight:700;}
 .error-text{color:#ff8aa7; font-weight:700;}
-@media (max-width:1160px){ .grid-layout{grid-template-columns:1fr;} .sidebar{position:relative; width:100%; height:auto;} .main{margin-left:0; padding:16px;} }
+@media (max-width:1160px){
+  .grid-layout{grid-template-columns:1fr;}
+  .sidebar{position:relative; width:100%; height:auto;}
+  .main{margin-left:0; padding:16px; width:100%; max-width:100%;}
+  .card{border-radius:12px; margin-bottom:12px;}
+  .page-header h1{font-size:1.75rem;}
+  .page-header p{font-size:.95rem;}
+}
+@media (max-width:760px){
+  body{padding-bottom:32px;}
+  .main{margin:0 auto; padding:14px;}
+  .page-header h1{font-size:1.55rem;}
+  .field input,.field select,.field textarea{font-size:.9rem;}
+  .btn-row{flex-direction:column;}
+}
 </style>
 </head>
 <body>
@@ -93,6 +107,12 @@ body{margin:0; font-family:Arial,sans-serif; background:#0b1320; color:white;}
         <div class="field">
           <label>Canal de entrada</label>
           <select id="channelEntry"><option value="none">Selecione um canal</option><option value="#geral">#geral</option><option value="#bem-vindo">#bem-vindo</option><option value="#entrada-saida">#entrada-saida</option><option value="#anuncios">#anuncios</option></select>
+        </div>
+
+        <div class="field">
+          <label>ID do Canal de entrada</label>
+          <input type="text" id="channelEntryId" placeholder="123456789012345678" />
+          <small class="applied-info">Obrigatório se mensagem de entrada estiver ativada.</small>
         </div>
 
         <div class="field">
@@ -172,6 +192,12 @@ body{margin:0; font-family:Arial,sans-serif; background:#0b1320; color:white;}
         </div>
 
         <div class="field">
+          <label>ID do Canal de saída</label>
+          <input type="text" id="channelExitId" placeholder="123456789012345678" />
+          <small class="applied-info">Obrigatório se mensagem de saída estiver ativada.</small>
+        </div>
+
+        <div class="field">
           <label>Modelo de saída</label>
           <select id="templateExit"><option value="padrao">Padrão</option><option value="emblema">Embed com Avatar</option><option value="lista">Lista de informações</option><option value="simples">Embed simples</option><option value="avatarimagem">Embed com Avatar e Imagem</option><option value="informacoes">Embed com Informações</option><option value="kitinfluencer">Kit Social Influencer™</option><option value="padrao2">Padrão Melhorado</option></select>
         </div>
@@ -241,11 +267,13 @@ const DEFAULT_CONFIG = {
   panelColor:'#1764ff',
   enableEntry:true,
   channelEntry:'#bem-vindo',
+  channelEntryId:'',
   templateEntry:'avatarimagem',
   messageEntry:'👋 {@user} entrou no servidor. Seja bem-vindo ao {@server}!',
   deleteEntry:0,
   enableExit:true,
   channelExit:'#saida',
+  channelExitId:'',
   templateExit:'avatarimagem',
   messageExit:'👋 {@user} saiu do servidor. Sentiremos sua falta!',
   deleteExit:0,
@@ -326,11 +354,13 @@ function loadConfig(){
   getInput('panelColor').value=config.panelColor;
   getInput('enableEntry').checked=config.enableEntry;
   getInput('channelEntry').value=config.channelEntry;
+  getInput('channelEntryId').value=config.channelEntryId || '';
   getInput('templateEntry').value=config.templateEntry;
   getInput('messageEntry').value=config.messageEntry;
   getInput('deleteEntry').value=config.deleteEntry;
   getInput('enableExit').checked=config.enableExit;
   getInput('channelExit').value=config.channelExit;
+  getInput('channelExitId').value=config.channelExitId || '';
   getInput('templateExit').value=config.templateExit;
   getInput('messageExit').value=config.messageExit;
   getInput('deleteExit').value=config.deleteExit;
@@ -361,11 +391,13 @@ function saveConfig(){
     panelColor:getInput('panelColor').value,
     enableEntry:getInput('enableEntry').checked,
     channelEntry:getInput('channelEntry').value,
+    channelEntryId:getInput('channelEntryId').value.trim(),
     templateEntry:getInput('templateEntry').value,
     messageEntry:getInput('messageEntry').value.trim() || DEFAULT_CONFIG.messageEntry,
     deleteEntry:Number(getInput('deleteEntry').value),
     enableExit:getInput('enableExit').checked,
     channelExit:getInput('channelExit').value,
+    channelExitId:getInput('channelExitId').value.trim(),
     templateExit:getInput('templateExit').value,
     messageExit:getInput('messageExit').value.trim() || DEFAULT_CONFIG.messageExit,
     deleteExit:Number(getInput('deleteExit').value),
@@ -403,8 +435,7 @@ function buildPlaceholder(message){
 function updatePreview(){
   const isEntry = getInput('enableEntry').checked;
   const isExit = getInput('enableExit').checked;
-  const channel = isEntry ? getInput('channelEntry').value : isExit ? getInput('channelExit').value : '-';
-  const modelo = isEntry ? getInput('templateEntry').value : getInput('templateExit').value;
+  const channel = isEntry ? getInput('channelEntry').value : isExit ? getInput('channelExit').value : '-';  const channelId = isEntry ? getInput('channelEntryId').value.trim() : isExit ? getInput('channelExitId').value.trim() : '-';  const modelo = isEntry ? getInput('templateEntry').value : getInput('templateExit').value;
   const rawMessage = isEntry ? getInput('messageEntry').value : isExit ? getInput('messageExit').value : '';
   const msg = rawMessage.trim() || (isEntry ? DEFAULT_CONFIG.messageEntry : DEFAULT_CONFIG.messageExit);
   const finalText = buildPlaceholder(msg);
@@ -422,7 +453,7 @@ function updatePreview(){
   const embedBox = document.getElementById('discordEmbed');
   const panelColor = getInput('panelColor').value || DEFAULT_CONFIG.panelColor;
 
-  document.getElementById('previewChannel').textContent = channel === 'none' ? 'nenhum canal definido' : channel;
+  document.getElementById('previewChannel').textContent = channel === 'none' ? 'nenhum canal definido' : `${channel} (ID: ${channelId || 'não definido'})`;
   document.getElementById('previewModel').textContent = modelo;
 
   previewScreen.style.borderColor = panelColor;
@@ -482,8 +513,22 @@ function testMessage(){
     getInput('statusText').className='error-text';
     return;
   }
+  if(entryStatus){
+    if(getInput('channelEntry').value === 'none' || !getInput('channelEntryId').value.trim()){
+      getInput('statusText').textContent='Defina canal e ID do canal de entrada antes de testar.';
+      getInput('statusText').className='error-text';
+      return;
+    }
+  }
+  if(exitStatus){
+    if(getInput('channelExit').value === 'none' || !getInput('channelExitId').value.trim()){
+      getInput('statusText').textContent='Defina canal e ID do canal de saída antes de testar.';
+      getInput('statusText').className='error-text';
+      return;
+    }
+  }
   const sim = entryStatus ? 'entrada' : 'saída';
-  getInput('statusText').textContent=`Simulando mensagem de ${sim} no canal ${entryStatus?getInput('channelEntry').value:getInput('channelExit').value}...`; 
+  getInput('statusText').textContent=`Simulando mensagem de ${sim} no canal ${entryStatus?getInput('channelEntry').value:getInput('channelExit').value} (ID: ${entryStatus?getInput('channelEntryId').value:getInput('channelExitId').value})...`; 
   getInput('statusText').className='success-text';
   setTimeout(() => {
     getInput('statusText').textContent = `Mensagem de ${sim} enviada com sucesso!`;
@@ -491,7 +536,7 @@ function testMessage(){
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  const fields = ['panelColor','enableEntry','channelEntry','templateEntry','messageEntry','deleteEntry','enableExit','channelExit','templateExit','messageExit','deleteExit','modeType','panelStyle','embedColor','embedAuthor','embedAuthorIcon','embedTitle','embedImage','embedThumbnail','embedFooter','embedFooterIcon'];
+  const fields = ['panelColor','enableEntry','channelEntry','channelEntryId','templateEntry','messageEntry','deleteEntry','enableExit','channelExit','channelExitId','templateExit','messageExit','deleteExit','modeType','panelStyle','embedColor','embedAuthor','embedAuthorIcon','embedTitle','embedImage','embedThumbnail','embedFooter','embedFooterIcon'];
   fields.forEach(id=>getInput(id).addEventListener('input', () => {
     if(id==='panelColor') document.querySelector('.sidebar').style.borderLeft = `4px solid ${getInput('panelColor').value}`;
     if(id==='panelStyle') applyPanelStyle(getInput(id).value);
