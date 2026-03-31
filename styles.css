@@ -95,7 +95,7 @@ canvas{
   90% { opacity: 1; transform: translateX(0); }
   100% { opacity: 0; transform: translateX(-25px); }
 }
-.error.animate{ animation: slideAndFade 5s ease-in-out; }
+.error.animate{ animation: slideAndFade 20s ease-in-out; }
 .bottom-text{ margin-top:10px; text-align:center; font-size:.85rem; color:#b9c6e3; }
 .bottom-text a{ color:#81cbff; text-decoration:none; font-weight:600; }
 

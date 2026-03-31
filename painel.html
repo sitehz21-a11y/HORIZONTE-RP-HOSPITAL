@@ -22,6 +22,8 @@ body{margin:0; font-family:Arial,sans-serif; background:#0b1320; color:white;}
 .user-box{background:#111f34; border-radius:12px; padding:14px; margin-top:12px; display:flex; align-items:center; gap:12px;}
 .user-box img{width:45px; height:45px; border-radius:50%; object-fit:cover;}
 .user-box div{font-size:.9rem;}
+.discord-status{margin-top:8px; padding:8px 12px; border-radius:8px; background:rgba(88,101,242,.22); color:#c5d3ff; font-weight:600; border:1px solid rgba(88,101,242,.45);}
+.discord-status.linked{background:rgba(72,192,120,.18); color:#b7ffcc; border-color:rgba(72,192,120,.6);}
 @media (max-width:900px){ .main{margin-left:0; padding:14px; } .sidebar{position:relative; width:100%; height:auto;} }
 </style>
 </head>
@@ -38,6 +40,7 @@ body{margin:0; font-family:Arial,sans-serif; background:#0b1320; color:white;}
     <div>
       <h1>Seja bem-vindo ao Sistema Administrativo do Hospital, <span id="welcome-user">Usuário</span></h1>
       <p>Dashboard para gerenciar o hospital dentro do servidor.</p>
+      <p id="discord-status" class="discord-status">Discord não vinculado</p>
     </div>
   </div>
 
@@ -77,6 +80,19 @@ if(!loggedUser){
   window.location.href = 'index.html';
 } else {
   document.getElementById('welcome-user').textContent = loggedUser;
+}
+
+// Status de vinculação Discord
+const discordStatusElement = document.getElementById('discord-status');
+const discordVinculado = sessionStorage.getItem('discord_vinculado');
+const discordUserName = sessionStorage.getItem('discord_user');
+if(discordStatusElement){
+  if(discordVinculado === 'true' && discordUserName){
+    discordStatusElement.textContent = `Discord vinculado: ${discordUserName}`;
+    discordStatusElement.classList.add('linked');
+  } else {
+    discordStatusElement.textContent = 'Discord não vinculado';
+  }
 }
 
 // Toggle menu

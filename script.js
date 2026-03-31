@@ -59,15 +59,17 @@ function handleServerSelect(e){
   const form = e.target.closest('form');
   const error = form.querySelector('.error');
   if(e.target.value === 'none'){
-    error.textContent = 'Escolha um servidor';
+    showMessage(error, 'Selecione um servidor.');
     return;
   }
   if(e.target.value !== 'server1'){
-    error.textContent = '⚠️ Servidor indisponível! Apenas o Servidor 1 está aberto para registros no momento. Selecione novamente.';
+    showToast('Este servidor ainda não está disponível.', 'info');
+    showMessage(error, 'Este servidor ainda não está disponível. Apenas Servidor 1 é aceito.');
     e.target.value = 'server1';
     return;
   }
-  error.textContent = '';
+  showMessage(error, 'Servidor selecionado: Servidor 1');
+  setTimeout(() => { error.textContent = ''; }, 500); // pequena limpeza após feedback
 }
 serverSelects.forEach(s => s.addEventListener('change', handleServerSelect));
 
@@ -97,7 +99,7 @@ function showToast(text, type = 'info'){
   setTimeout(() => {
     toast.classList.add('hide');
     setTimeout(() => toast.remove(), 300);
-  }, 5000);
+  }, 20000);
 }
 
 function showMessage(el, text){
@@ -108,11 +110,20 @@ function showMessage(el, text){
   messageTimer = setTimeout(() => {
     el.classList.remove('visible','animate');
     el.textContent = '';
-  }, 5000);
+  }, 20000);
 }
 
 function gerarRG(){
   return Math.floor(10000000 + Math.random() * 90000000) + '-' + Math.floor(10 + Math.random() * 89);
+}
+
+const API_LINK_PATH = '/start-discord-link'
+
+function getCurrentUsernameForLink(){
+  const logged = sessionStorage.getItem('loggedUser');
+  if(logged) return logged;
+  const registerNameField = document.querySelector('#registro-form input[name="username"]');
+  return registerNameField ? registerNameField.value.trim() : '';
 }
 
 // Login via Discord
@@ -120,48 +131,83 @@ const loginDiscordBtn = document.getElementById('loginDiscordBtn');
 if(loginDiscordBtn){
   loginDiscordBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    window.location.href = 'https://discord.com/oauth2/authorize?client_id=1475229446901334218&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fcallback&scope=identify';
+    const user = getCurrentUsernameForLink();
+    if(!user){
+      showToast('Primeiro efetue login ou digite seu usuário antes de vincular.', 'error');
+      return;
+    }
+    window.location.href = `${API_LINK_PATH}?usuario_site=${encodeURIComponent(user)}`;
   });
 }
 
 // Verificar se voltou de autenticação Discord
 const urlParams = new URLSearchParams(window.location.search);
+const oauthError = urlParams.get('error');
+if(oauthError){
+  showToast(`Erro de autenticação Discord: ${oauthError}`, 'error');
+  window.history.replaceState({}, document.title, window.location.pathname);
+}
+
 if(urlParams.get('discord') === 'linked'){
   const encodedData = urlParams.get('data');
+  const linkedUser = urlParams.get('linked_user');
+  let discordUser = null;
+
   if(encodedData){
     try {
-      const discordUser = JSON.parse(Buffer.from(encodedData, 'base64').toString());
-      const accounts = JSON.parse(localStorage.getItem('accounts') || '[]');
-      const account = accounts.find(a => a.discordId === discordUser.discordId);
-      
-      if(account){
-        // Atualizar conta com informações do Discord
-        account.username = discordUser.username || account.username;
-        account.role = discordUser.highestRole || account.role;
-        account.discordData = discordUser;
-        localStorage.setItem('accounts', JSON.stringify(accounts));
-        
-        // Login automático
-        sessionStorage.setItem('loggedUser', account.username);
-        showToast('Login via Discord realizado com sucesso!', 'success');
-        
-        // Limpar URL
-        window.history.replaceState({}, document.title, 'index.html');
-        
-        setTimeout(() => {
-          window.location.href = 'painel.html';
-        }, 1000);
-      } else {
-        showToast('Erro: Sua conta do Discord não está vinculada a nenhuma conta do sistema. Por favor, crie uma conta primeiro.', 'error');
-        window.history.replaceState({}, document.title, 'index.html');
-      }
-    } catch(err) {
-      console.error('Erro ao processar dados Discord:', err);
-      showToast('Erro ao processar autenticação Discord.', 'error');
-      window.history.replaceState({}, document.title, 'index.html');
+      const decoded = atob(encodedData);
+      discordUser = JSON.parse(decoded);
+    } catch(e) {
+      console.error('Erro ao decodificar data do Discord:', e);
     }
   }
+
+  if(discordUser){
+    const accounts = JSON.parse(localStorage.getItem('accounts') || '[]');
+    const currentUser = linkedUser || sessionStorage.getItem('loggedUser') || getCurrentUsernameForLink();
+
+    if(currentUser){
+      let account = accounts.find(a => a.username === currentUser);
+      if(!account){
+        // fallback, encontra por discordId
+        account = accounts.find(a => a.discordId === discordUser.discordId);
+      }
+
+      if(account){
+        account.discord = `${discordUser.username}#${discordUser.discriminator || '0000'}`;
+        account.discordId = discordUser.id;
+        account.discordLinked = true;
+        localStorage.setItem('accounts', JSON.stringify(accounts));
+      }
+    }
+
+    sessionStorage.setItem('discord_vinculado', 'true');
+    sessionStorage.setItem('discord_user', discordUser.username);
+    sessionStorage.setItem('discord_user_id', discordUser.id);
+    sessionStorage.setItem('discord_user_full', JSON.stringify(discordUser));
+    if(linkedUser) sessionStorage.setItem('linked_user', linkedUser);
+
+    showToast('Conta do Discord vinculada com sucesso!', 'success');
+    showMessage(document.querySelector('.error'), 'Conta do Discord vinculada com sucesso!');
+
+    const discordVinculadoDiv = document.getElementById('discordVinculado');
+    if(discordVinculadoDiv){
+      discordVinculadoDiv.style.display = 'block';
+      discordVinculadoDiv.textContent = `✅ Conta do Discord vinculada: ${discordUser.username}#${discordUser.discriminator || '0000'}`;
+    }
+
+    // Atualizar painel se estiver na página de painel
+    const painelStatus = document.getElementById('discord-status');
+    if(painelStatus){
+      painelStatus.textContent = `Discord vinculado: ${discordUser.username}#${discordUser.discriminator || '0000'}`;
+      painelStatus.classList.add('linked');
+    }
+  }
+
+  window.history.replaceState({}, document.title, window.location.pathname);
 }
+
+// Fim do bloco de verificação de retorno Discord
 
 function saveAndRedirect(data){
   sessionStorage.setItem('processData', JSON.stringify(data));
@@ -177,22 +223,31 @@ if(loginForm){
     const server = loginForm.querySelector('select[name="server"]').value;
     const error = loginForm.querySelector('.error');
     if(!user || !pass){
-      showToast('Preencha usuário e senha.', 'error');
+      showToast('Campos faltando. Preencha nome e senha.', 'error');
+      showMessage(error, 'Campos faltando. Preencha nome e senha.');
       return;
     }
     if(server === 'none'){
       showToast('Selecione um servidor.', 'error');
+      showMessage(error, 'Selecione um servidor.');
+      return;
+    }
+    if(server !== 'server1'){
+      showToast('Este servidor ainda não está disponível.', 'error');
+      showMessage(error, 'Este servidor ainda não está disponível. Apenas Servidor 1.');
       return;
     }
     // Verificar conta
     const accounts = JSON.parse(localStorage.getItem('accounts') || '[]');
     const account = accounts.find(acc => acc.username === user);
     if(!account){
-      showToast('Nome incorreto.', 'error');
+      showToast('Nome inválido.', 'error');
+      showMessage(error, 'Nome inválido. Verifique seu usuário.');
       return;
     }
     if(account.password !== pass){
       showToast('Senha incorreta.', 'error');
+      showMessage(error, 'Senha incorreta. Confira e tente novamente.');
       return;
     }
     // Verificar se conta está bloqueada
@@ -227,7 +282,8 @@ if(loginForm){
     localStorage.setItem('accountLogs', JSON.stringify(logs));
     // Salvar usuário logado
     sessionStorage.setItem('loggedUser', user);
-    showToast('Login bem-sucedido!', 'success');
+    showToast('Login realizado com sucesso!', 'success');
+    showMessage(error, 'Login realizado com sucesso!');
     setTimeout(() => { window.location.href = 'painel.html'; }, 800);
   });
 }
@@ -240,39 +296,18 @@ const discordVinculadoDiv = document.getElementById('discordVinculado');
 if(vincularBtn){
   vincularBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    // Salvar que o usuário iniciou vinculação
+    const user = getCurrentUsernameForLink();
+    if(!user){
+      showToast('Digite o nome de usuário antes de vincular o Discord.', 'error');
+      return;
+    }
+
     sessionStorage.setItem('discord_linking', 'true');
-    // Redirecionar para Discord OAuth
-    window.location.href = 'https://discord.com/oauth2/authorize?client_id=1475229446901334218&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fcallback&scope=identify.premium+identify';
+    window.location.href = `${API_LINK_PATH}?usuario_site=${encodeURIComponent(user)}`;
   });
 }
 
-// Verificar se voltou da vinculação Discord
-const urlParams = new URLSearchParams(window.location.search);
-if(urlParams.get('discord') === 'linked'){
-  const encodedData = urlParams.get('data');
-  if(encodedData){
-    try {
-      const discordUser = JSON.parse(Buffer.from(encodedData, 'base64').toString());
-      sessionStorage.setItem('discord_vinculado', 'true');
-      sessionStorage.setItem('discord_user', discordUser.username);
-      sessionStorage.setItem('discord_user_id', discordUser.discordId);
-      sessionStorage.setItem('discord_user_full', JSON.stringify(discordUser));
-      
-      if(discordVinculadoDiv) discordVinculadoDiv.style.display = 'block';
-      if(criarContaBtn){
-        criarContaBtn.disabled = false;
-        criarContaBtn.style.opacity = '1';
-        criarContaBtn.style.cursor = 'pointer';
-      }
-    } catch(err) {
-      console.error('Erro ao processar dados Discord:', err);
-    }
-  }
-  
-  // Limpar parâmetro da URL
-  window.history.replaceState({}, document.title, window.location.pathname);
-}
+
 
 // Verificar vinculação ao carregar página
 if(window.location.pathname.includes('registro.html')){
@@ -313,6 +348,10 @@ if(registerForm){
     }
     if(server === 'none'){
       showToast('Selecione um servidor.', 'error');
+      return;
+    }
+    if(server !== 'server1'){
+      showToast('Este servidor ainda não está disponível.', 'error');
       return;
     }
     if(!terms){
