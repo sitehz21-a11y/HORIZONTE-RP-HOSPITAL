@@ -5,13 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mensagens | Painel Sistema Hospital</title>
 <link rel="stylesheet" href="styles.css">
+<style>
+body,html{margin:0;padding:0;height:100%;font-family:'Inter',Arial,sans-serif;background:#070a15;overflow:hidden;color:#e8f2ff;}
+.bg, .message-3d-bg{position:fixed;inset:0;z-index:-2;}
+.message-3d-bg{background: radial-gradient(circle at 20% 25%, #1e3a57, #071123 25%, #040816 70%, #02030b 100%);}
+.message-grid{position:fixed;inset:0;z-index:-1;pointer-events:none;}
+.message-grid span{position:absolute;width:2px;height:2px;background:rgba(120,200,255,.7);border-radius:50%;box-shadow:0 0 6px rgba(120,200,255,.6);animation:twinkle 5s ease-in-out infinite alternate;}
+@keyframes twinkle{0%{opacity:.2;transform:scale(.8);}50%{opacity:1;transform:scale(1.2);}100%{opacity:.2;transform:scale(.8);}}
+.main{max-width:1140px;margin:72px auto 40px;padding:20px;background:rgba(6,11,26,.76);border:1px solid rgba(135,206,255,.2);box-shadow:0 28px 50px rgba(0,0,0,.35), inset 0 0 35px rgba(53,145,255,.1);border-radius:24px;backdrop-filter:blur(10px);transform-style:preserve-3d;}
+.page-header h1{font-size:2.8rem;margin:0;color:#b7d8ff;text-shadow:0 2px 16px rgba(33,114,217,.68);}
+.page-header p{margin:.8rem 0 20px;color:#a9c6e8;}
+.card{background:rgba(20,30,56,.85);border:1px solid rgba(82,146,255,.25);border-radius:14px;padding:18px;box-shadow:0 16px 30px rgba(18,48,95,.35);}
+label{color:#aac8ec;font-weight:600;}
+input,select,textarea{border-radius:10px;border:1px solid rgba(183,220,255,.3);background:rgba(14,26,50,.68);color:#f8fcff;padding:10px;margin-top:6px;margin-bottom:12px;}
+.btn{border:none;padding:10px 18px;border-radius:10px;font-weight:700;cursor:pointer;transition:.25s;}
+.btn-primary{background:linear-gradient(145deg,#2f86ff,#3f70f8);color:#fff;}
+.btn-secondary{background:linear-gradient(145deg,#5e87ff,#3f74e7);color:#fff;}
+</style>
 </head>
 <body>
-<div class="bg"></div>
+<div class="message-3d-bg"></div>
+<div class="message-grid" id="messageGrid"></div>
 <div class="main">
   <div class="page-header">
     <h1>Mensagens</h1>
-    <p>Gerencie templates e envios de mensagens do hospital.</p>
+    <p>Gerencie e envie comunicados com painel visual 3D integrado.</p>
   </div>
 
   <div class="cards">
@@ -34,7 +52,23 @@
 
   <footer class="watermark-foot">2026 © Horizonte Roleplay Hospital - UCP desenvolvido por Criarp</footer>
 </div>
-
+<script>
+  const grid = document.getElementById('messageGrid');
+  if(grid){
+    for(let i=0;i<280;i++){
+      const s=document.createElement('span');
+      s.style.left=`${Math.random()*100}%`;
+      s.style.top=`${Math.random()*100}%`;
+      s.style.animationDelay=`${Math.random()*-6}s`;
+      s.style.animationDuration=`${3 + Math.random()*5}s`;
+      s.style.opacity=Math.random();
+      const size=1+Math.random()*2;
+      s.style.width=`${size}px`;
+      s.style.height=`${size}px`;
+      grid.appendChild(s);
+    }
+  }
+</script>
 <script src="script.js"></script>
 </body>
 </html>

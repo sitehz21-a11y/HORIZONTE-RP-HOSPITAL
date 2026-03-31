@@ -172,25 +172,24 @@ function fecharModal(){
   document.getElementById('member-modal').classList.remove('active');
 }
 
-// Dados simulados de membros do servidor Discord
+// Carrega membros baseados nas contas cadastradas localmente no site.
+// Se não houver conta nenhuma, mostra lista vazia e aguarda registro manual.
 function gerarMembrosServidor(){
-  const dadosMembros = [
-    { nome: 'Salvador', id: '123456789012345678', cargo: 'Diretor', nivelCargo: 10, siteAccount: 'Salvador', site: true, status: 'online' },
-    { nome: 'criarp', id: '234567890123456789', cargo: 'Administrador', nivelCargo: 9, siteAccount: 'criarp', site: true, status: 'online' },
-    { nome: 'NATHY_DLAURENN', id: '345678901234567890', cargo: 'Coordenador', nivelCargo: 8, siteAccount: 'NATHY_DLAURENN', site: true, status: 'idle' },
-    { nome: 'PaulinhoD|aurenn', id: '456789012345678901', cargo: 'Coordenador', nivelCargo: 8, siteAccount: 'PaulinhoD|aurenn', site: true, status: 'online' },
-    { nome: 'Ricky_W', id: '567890123456789012', cargo: 'Coordenador', nivelCargo: 8, siteAccount: 'Ricky_W', site: true, status: 'offline' },
-    { nome: 'Reizinh0', id: '678901234567890123', cargo: 'Diretor', nivelCargo: 10, siteAccount: 'Reizinh0', site: true, status: 'online' },
-    { nome: 'Bilbo', id: '789012345678901234', cargo: 'Diretor', nivelCargo: 10, siteAccount: 'Bilbo', site: true, status: 'dnd' },
-    { nome: 'GFMagnata', id: '890123456789012345', cargo: 'Diretor', nivelCargo: 10, siteAccount: 'GFMagnata', site: true, status: 'online' },
-    { nome: 'MemberA', id: '901234567890123456', cargo: 'Membro', nivelCargo: 1, siteAccount: null, site: false, status: 'offline' },
-    { nome: 'MemberB', id: '012345678901234567', cargo: 'Moderador', nivelCargo: 5, siteAccount: null, site: false, status: 'online' },
-  ];
-  
-  return dadosMembros.map(m => ({
-    ...m,
-    joinedDate: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR'),
-    avatar: Math.random() > 0.5 ? 'images/nurse-female.jpeg' : 'images/doctor-male.jpeg'
+  const accounts = JSON.parse(localStorage.getItem('accounts') || '[]');
+  if(!Array.isArray(accounts) || accounts.length === 0){
+    return [];
+  }
+
+  return accounts.map((acc, idx) => ({
+    nome: acc.username || `Usuario${idx+1}`,
+    id: acc.discordId || `ID-${Math.floor(Math.random()*900000000000000000 + 100000000000000000)}`,
+    cargo: acc.role || 'Membro',
+    nivelCargo: acc.role === 'Diretor' ? 10 : acc.role === 'Administrador' ? 9 : acc.role === 'Coordenador' ? 8 : 1,
+    siteAccount: acc.username,
+    site: true,
+    status: ['online','idle','offline','dnd'][idx % 4],
+    joinedDate: new Date(acc.registeredAt ? new Date(acc.registeredAt).getTime() : Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR'),
+    avatar: acc.avatar || (Math.random() > 0.5 ? 'images/nurse-female.jpeg' : 'images/doctor-male.jpeg')
   }));
 }
 

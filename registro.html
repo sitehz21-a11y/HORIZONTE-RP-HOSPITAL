@@ -26,11 +26,13 @@
       <div class="form-group"><label>Senha</label><input class="input" type="password" name="password" placeholder="🔒 ********"></div>
       <div class="form-group"><label>Sexo</label><div class="card-grid"><button type="button" class="gender-card" data-gender="masculino"><span>👨</span> Homem</button><button type="button" class="gender-card" data-gender="feminino"><span>👩</span> Mulher</button></div></div>
       <input id="gender" type="hidden" value="masculino">
+      <div class="form-group"><label>Conta do Discord</label><input id="discordInput" class="input" type="text" name="discord" placeholder="Ex: Usuario#1234" autocomplete="off"></div>
       <div class="terms"><input type="checkbox" name="terms" id="terms"><label for="terms">Aceito os termos de uso</label></div>
+      <div class="small-text" style="margin-top:6px; color:#8de4ff;">OBS: Preencha todos os campos antes de ir para manutenção.</div>
       <div class="error"></div>
       <button class="btn btn-discord" type="button" id="vincularDiscordBtn" onclick="return false;">🔗 Vincular Conta do Discord</button>
       <div id="discordVinculado" style="display:none; margin:10px 0; padding:10px; background:rgba(100,255,100,.15); border:1px solid rgba(100,255,100,.3); border-radius:8px; color:#90ff90; text-align:center; font-weight:600;">✅ Conta do Discord vinculada com sucesso!</div>
-      <button class="btn btn-primary" type="submit" id="criarContaBtn" disabled style="opacity:0.5; cursor:not-allowed;">CRIAR CONTA</button>
+      <button class="btn btn-primary" type="submit" id="criarContaBtn">CRIAR CONTA</button>
       <div class="bottom-text">Já possui conta? <a href="index.html">Fazer login</a></div>
     </form>
   </div>
@@ -55,6 +57,7 @@
   <p>📊 O objetivo é garantir organização, profissionalismo e transparência na administração do hospital, com controle completo de todos os processos internos.</p>
   <p>💼 Sistema Administrativo Oficial do Hospital — desenvolvido para gestão moderna, segura e eficiente para toda a equipe médica.</p>
 </section>
+<script>window.__BACKEND_URL__ = window.__BACKEND_URL__ || (window.location.hostname === 'localhost' ? 'http://localhost:3000' : window.location.origin);</script>
 <script src="script.js"></script>
 <footer class="watermark-foot">2026 © Horizonte Roleplay Hospital - UCP desenvolvido por Criarp</footer>
 </body>

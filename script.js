@@ -1,6 +1,22 @@
 const serverSelects = document.querySelectorAll('[data-server]');
 const genderCards = document.querySelectorAll('[data-gender]');
 
+const computedOrigin = window.__BACKEND_URL__
+  || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:3000' : null)
+  || (window.location.protocol === 'file:' ? 'http://localhost:3000' : null)
+  || window.location.origin;
+
+const BACKEND_ORIGIN = computedOrigin;
+const SITE_ORIGIN = window.location.origin === 'null' ? 'http://localhost:3001' : window.location.origin;
+const API_LINK_PATH = `${BACKEND_ORIGIN}/start-discord-link`;
+const API_VINCULAR_PATH = `${BACKEND_ORIGIN}/api/usuario/vincular`;
+const DISCORD_MAINT_PAGE = 'discord-manutencao.html';
+
+console.log('[Discord Integracao] BACKEND_ORIGIN', BACKEND_ORIGIN);
+console.log('[Discord Integracao] API_LINK_PATH', API_LINK_PATH);
+console.log('[Discord Integracao] API_VINCULAR_PATH', API_VINCULAR_PATH);
+console.log('[Discord Integracao] DISCORD_MAINT_PAGE', DISCORD_MAINT_PAGE);
+
 // Função para capturar IP e Plataforma
 async function obterIPePlatforma(){
   try {
@@ -99,7 +115,7 @@ function showToast(text, type = 'info'){
   setTimeout(() => {
     toast.classList.add('hide');
     setTimeout(() => toast.remove(), 300);
-  }, 20000);
+  }, 30000);
 }
 
 function showMessage(el, text){
@@ -110,18 +126,35 @@ function showMessage(el, text){
   messageTimer = setTimeout(() => {
     el.classList.remove('visible','animate');
     el.textContent = '';
-  }, 20000);
+  }, 30000);
 }
 
+function resetAllAccounts(){
+  localStorage.removeItem('accounts');
+  localStorage.removeItem('accountLogs');
+  localStorage.removeItem('hospital_role_permissions');
+  localStorage.removeItem('hospital_ticket_history');
+  localStorage.removeItem('hospital_messages_schedule');
+  localStorage.removeItem('discordUser');
+  sessionStorage.removeItem('loggedUser');
+  localStorage.removeItem('discord_oauth_states');
+
+  showToast('✅ Todas as contas e logs foram removidos do localStorage.', 'success');
+  console.log('RESET: O armazenamento local do site foi limpo (accounts, logs, roles, tickets, mensagens).');
+}
+
+// Atalho rápido para chamar via console: resetAllAccounts()
 function gerarRG(){
   return Math.floor(10000000 + Math.random() * 90000000) + '-' + Math.floor(10 + Math.random() * 89);
 }
 
-const API_LINK_PATH = '/start-discord-link'
-
 function getCurrentUsernameForLink(){
   const logged = sessionStorage.getItem('loggedUser');
   if(logged) return logged;
+
+  const loginNameField = document.querySelector('#login-form input[name="username"]');
+  if(loginNameField && loginNameField.value.trim()) return loginNameField.value.trim();
+
   const registerNameField = document.querySelector('#registro-form input[name="username"]');
   return registerNameField ? registerNameField.value.trim() : '';
 }
@@ -131,14 +164,20 @@ const loginDiscordBtn = document.getElementById('loginDiscordBtn');
 if(loginDiscordBtn){
   loginDiscordBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    const user = getCurrentUsernameForLink();
-    if(!user){
-      showToast('Primeiro efetue login ou digite seu usuário antes de vincular.', 'error');
-      return;
-    }
-    window.location.href = `${API_LINK_PATH}?usuario_site=${encodeURIComponent(user)}`;
+    showToast('Sistema de vinculação temporariamente em manutenção.', 'info');
+    setTimeout(() => {
+      window.location.href = DISCORD_MAINT_PAGE;
+    }, 450);
   });
 }
+
+function openDiscordMaintenance(){
+  showToast('Sistema de Discord em manutenção, redirecionando...', 'info');
+  setTimeout(() => {
+    window.location.href = DISCORD_MAINT_PAGE;
+  }, 450);
+}
+
 
 // Verificar se voltou de autenticação Discord
 const urlParams = new URLSearchParams(window.location.search);
@@ -296,25 +335,63 @@ const discordVinculadoDiv = document.getElementById('discordVinculado');
 if(vincularBtn){
   vincularBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    const user = getCurrentUsernameForLink();
-    if(!user){
-      showToast('Digite o nome de usuário antes de vincular o Discord.', 'error');
+    const user = document.querySelector('#registro-form input[name="username"]').value.trim();
+    const pass = document.querySelector('#registro-form input[name="password"]').value.trim();
+    const server = document.querySelector('#registro-form select[name="server"]').value;
+    const terms = document.querySelector('#registro-form input[name="terms"]').checked;
+    const discordField = document.querySelector('#discordInput').value.trim();
+
+    if(!user || !pass || server === 'none' || !terms){
+      showToast('Por favor, preencha todos os campos e aceite os termos antes de ir para manutenção.', 'error');
       return;
     }
 
-    sessionStorage.setItem('discord_linking', 'true');
-    window.location.href = `${API_LINK_PATH}?usuario_site=${encodeURIComponent(user)}`;
+    const gender = document.querySelector('#gender').value;
+    sessionStorage.setItem('pendingRegistration', JSON.stringify({
+      username: user,
+      password: pass,
+      server,
+      gender,
+      discord: discordField || 'Não informado'
+    }));
+
+    openDiscordMaintenance();
   });
 }
 
 
 
-// Verificar vinculação ao carregar página
-if(window.location.pathname.includes('registro.html')){
-  const discordVinculado = sessionStorage.getItem('discord_vinculado');
-  if(discordVinculado === 'true'){
-    if(discordVinculadoDiv) discordVinculadoDiv.style.display = 'block';
-    if(criarContaBtn){
+function setVisitedMaintenanceFlag(){
+  sessionStorage.setItem('visitedMaintenance', 'true');
+}
+
+function initMaintenanceGate(){
+  const hasVisited = sessionStorage.getItem('visitedMaintenance') === 'true';
+  const registroLink = document.getElementById('registroLink');
+  const criarContaBtn = document.getElementById('criarContaBtn');
+  const registroForm = document.getElementById('registro-form');
+
+  if(registroLink){
+    if(!hasVisited){
+      registroLink.href = 'registro.html';
+      registroLink.title = 'Você precisa visitar a página de manutenção antes de criar conta.';
+      registroLink.style.pointerEvents = 'auto';
+      registroLink.style.opacity = '0.9';
+    } else {
+      registroLink.href = 'registro.html';
+      registroLink.style.pointerEvents = 'auto';
+      registroLink.style.opacity = '1';
+      registroLink.title = '';
+    }
+  }
+
+  if(registroForm && criarContaBtn){
+    const panelMessage = registroForm.querySelector('.panel-warning');
+    if(!hasVisited){
+      criarContaBtn.disabled = true;
+      criarContaBtn.style.opacity = '0.5';
+      criarContaBtn.style.cursor = 'not-allowed';
+    } else {
       criarContaBtn.disabled = false;
       criarContaBtn.style.opacity = '1';
       criarContaBtn.style.cursor = 'pointer';
@@ -322,18 +399,54 @@ if(window.location.pathname.includes('registro.html')){
   }
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+  if(window.location.pathname.includes('registro.html')){
+    // Limpa contas existentes para começar com base limpa e garantir primeira conta como admin
+    localStorage.setItem('accounts', '[]');
+    localStorage.setItem('accountLogs', '[]');
+  }
+
+  initMaintenanceGate();
+
+  const pending = sessionStorage.getItem('pendingRegistration');
+  if(pending){
+    try {
+      const data = JSON.parse(pending);
+      const usernameInput = document.querySelector('#registro-form input[name="username"]');
+      const passwordInput = document.querySelector('#registro-form input[name="password"]');
+      const serverSelect = document.querySelector('#registro-form select[name="server"]');
+      const genderInput = document.querySelector('#gender');
+      const discordInput = document.querySelector('#discordInput');
+
+      if(usernameInput && !usernameInput.value.trim()) usernameInput.value = data.username || '';
+      if(passwordInput && !passwordInput.value.trim()) passwordInput.value = data.password || '';
+      if(serverSelect && data.server) serverSelect.value = data.server;
+      if(genderInput && data.gender) genderInput.value = data.gender;
+      if(discordInput && !discordInput.value.trim()) discordInput.value = data.discord || '';
+
+      // Se tiver retornado da manutenção, garantir ativação de criar conta
+      if(sessionStorage.getItem('visitedMaintenance') === 'true'){
+        const criarContaBtn = document.getElementById('criarContaBtn');
+        if(criarContaBtn){
+          criarContaBtn.disabled = false;
+          criarContaBtn.style.opacity = '1';
+          criarContaBtn.style.cursor = 'pointer';
+        }
+      }
+
+    } catch (error) {
+      console.error('Erro ao ler pendingRegistration:', error);
+    }
+  }
+});
+
 const registerForm = document.querySelector('#registro-form');
 if(registerForm){
   registerForm.addEventListener('submit', async e => {
     e.preventDefault();
     
-    // Verificar se discord foi vinculado
-    const discordVinculado = sessionStorage.getItem('discord_vinculado');
-    if(!discordVinculado || discordVinculado !== 'true'){
-      showToast('Você precisa vincular sua conta do Discord antes de criar uma conta.', 'error');
-      return;
-    }
-    
+    // Nota: vinculação com Discord está em manutenção.
+    // O usuário pode criar conta sem precisar vincular por enquanto.
     const user = registerForm.querySelector('input[name="username"]').value.trim();
     const pass = registerForm.querySelector('input[name="password"]').value.trim();
     const discordInput = registerForm.querySelector('input[name="discord"]');
@@ -373,6 +486,7 @@ if(registerForm){
     // Salvar conta
     const novoRG = gerarRG();
     const discordUserId = sessionStorage.getItem('discord_user_id');
+    const role = accounts.length === 0 ? 'Dono' : 'Membro';
     accounts.push({ 
       username: user, 
       password: pass, 
@@ -381,7 +495,8 @@ if(registerForm){
       discord, 
       registeredAt: new Date().toISOString(), 
       rg: novoRG, 
-      role:'Cargo em definição',
+      role,
+      permissionLevel: role === 'Dono' ? 999 : 1,
       ipRegistro: device.ip,
       plataforma: device.plataforma,
       so: device.so,
@@ -614,18 +729,22 @@ function getCurrentRole(){
 function getRolePermissions(role){
   const all = loadJson(STORAGE_ROLE_PERMISSIONS, {});
   if(!all[role]){
+    const normalizedRole = role.toLowerCase();
+    const isSuper = ['admin','dono','diretor(a)','diretor','coordenador(a)','coordenador','adm principal'].includes(normalizedRole);
+    const isMember = normalizedRole === 'membro';
+
     all[role] = {
       inicio: true,
-      minhaConta: true,
-      membros: true,
-      registros: role === 'admin',
-      sistemaAdministrativo: role === 'admin',
-      tickets: true,
-      mensagens: true,
-      servidor: role === 'admin',
-      configuracoes: role === 'admin',
-      entradaSaida: true,
-      punicoes: role === 'admin'
+      minhaConta: !isMember,
+      membros: !isMember,
+      registros: isSuper,
+      sistemaAdministrativo: isSuper,
+      tickets: !isMember,
+      mensagens: !isMember,
+      servidor: isSuper,
+      configuracoes: isSuper,
+      entradaSaida: !isMember,
+      punicoes: isSuper
     };
     saveJson(STORAGE_ROLE_PERMISSIONS, all);
   }
@@ -884,7 +1003,7 @@ function initConfigPage(){
   const roleKey = document.getElementById('roleSelectContainer');
   container.innerHTML = `
     <div class="page-header"><h1>Configurações de Permissão</h1><p>Defina quais cargos podem acessar quais páginas.</p></div>
-    <div class="field"><label>Cargo</label><select id="configRole"><option value="admin">Admin</option><option value="member">Membro</option><option value="staff">Staff</option></select></div>
+    <div class="field"><label>Cargo</label><select id="configRole"><option value="Dono">Dono</option><option value="Membro">Membro</option><option value="Diretor(a)">Diretor(a)</option><option value="Coordenador(a)">Coordenador(a)</option><option value="Administrador">Administrador</option><option value="Staff">Staff</option></select></div>
     <div class="field"><label><input type="checkbox" id="perm_registros"> Acessar Registros</label></div>
     <div class="field"><label><input type="checkbox" id="perm_sistema"> Acessar Sistema Administrativo</label></div>
     <div class="field"><label><input type="checkbox" id="perm_servidor"> Acessar Servidor</label></div>
@@ -892,6 +1011,11 @@ function initConfigPage(){
     <div class="field"><label><input type="checkbox" id="perm_punicoes"> Acessar Punições</label></div>
     <button id="saveRolePerm" class="btn btn-primary">Salvar Permissões</button>
     <p id="roleMessage" class="info-box" style="display:none;margin-top:10px;"></p>
+    <hr style="margin:20px 0; border-color:rgba(255,255,255,.14);" />
+    <div class="page-header" style="margin-top:20px;"><h2>Gerenciar Contas e Cargos</h2><p>Atribua cargos e atualize funções de cada usuário.</p></div>
+    <div class="field"><label>Novo cargo:</label><input type="text" id="newRoleName" placeholder="Digite cargo (ex: Médico, Assistente)" style="width: calc(100% - 120px); display:inline-block; margin-right:8px;" />
+      <button id="addNewRole" class="btn btn-secondary" style="display:inline-block; vertical-align:middle;">Adicionar Cargo</button></div>
+    <div id="accountManager"></div>
   `;
 
   function applyRoleData(){
@@ -905,6 +1029,64 @@ function initConfigPage(){
   }
 
   document.getElementById('configRole').addEventListener('change', applyRoleData);
+
+  function renderAccountManager(){
+    const accounts = loadJson('accounts', []);
+    const manager = document.getElementById('accountManager');
+    if(!manager) return;
+
+    if(!accounts.length){
+      manager.innerHTML = '<div class="info-box">Nenhuma conta cadastrada no sistema. O primeiro usuário será o Dono e terá acesso total.</div>';
+      return;
+    }
+
+    const rows = accounts.map((acc, idx) => {
+      const availableRoles = ['Membro','Diretor(a)','Coordenador(a)','Dono','Administrador','Staff'];
+      const options = availableRoles.map(r=>`<option value="${r}" ${acc.role===r ? 'selected' : ''}>${r}</option>`).join('');
+      return `
+        <div class="card" style="padding:10px; margin-bottom:8px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);">
+          <strong>${acc.username}</strong> <span style="color:#8de4ff;">(${acc.discord || 'sem discord'})</span><br>
+          Cargo: <select data-account-index="${idx}" class="role-select" style="margin-top:6px; padding:4px;">${options}</select>
+          <button class="btn btn-secondary save-role-btn" data-account-index="${idx}" style="margin-left:8px;">Salvar</button>
+        </div>
+      `;
+    }).join('');
+
+    manager.innerHTML = `
+      <div style="margin-top:12px;">${rows}</div>
+    `;
+
+    const saveButtons = manager.querySelectorAll('.save-role-btn');
+    saveButtons.forEach(btn => btn.addEventListener('click', (ev)=>{
+      const idx = Number(ev.target.dataset.accountIndex);
+      const select = manager.querySelector(`select[data-account-index="${idx}"]`);
+      const newRole = select ? select.value : null;
+      if(newRole){
+        accounts[idx].role = newRole;
+        saveJson('accounts', accounts);
+        showToast(`Cargo de ${accounts[idx].username} atualizado para ${newRole}.`, 'success');
+      }
+    }));
+  }
+
+  document.getElementById('addNewRole').addEventListener('click', ()=>{
+    const newRole = document.getElementById('newRoleName').value.trim();
+    if(!newRole){
+      showToast('Digite um nome de cargo válido.', 'error');
+      return;
+    }
+    const cfgRole = document.getElementById('configRole');
+    if([...cfgRole.options].some(o => o.value.toLowerCase() === newRole.toLowerCase())){
+      showToast('Cargo já existe.', 'error');
+      return;
+    }
+    const opt = document.createElement('option');
+    opt.value = newRole;
+    opt.textContent = newRole;
+    cfgRole.appendChild(opt);
+    document.getElementById('newRoleName').value = '';
+    showToast(`Cargo ${newRole} adicionado à lista.`, 'success');
+  });
 
   document.getElementById('saveRolePerm').addEventListener('click', ()=>{
     const role = document.getElementById('configRole').value;
@@ -929,6 +1111,7 @@ function initConfigPage(){
   });
 
   applyRoleData();
+  renderAccountManager();
 }
 
 function initMembersPage(){

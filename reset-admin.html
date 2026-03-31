@@ -83,7 +83,7 @@ document.getElementById('confirmResetBtn').addEventListener('click', () => {
     return;
   }
 
-  // Excluir todas as contas
+  // Excluir todas as contas no localStorage do site
   localStorage.removeItem('accounts');
   localStorage.removeItem('accountLogs');
   localStorage.removeItem('discordUser');
@@ -92,13 +92,35 @@ document.getElementById('confirmResetBtn').addEventListener('click', () => {
   localStorage.removeItem('hospital_role_permissions');
   sessionStorage.removeItem('loggedUser');
 
-  status.style.display = 'block';
-  status.className = 'success';
-  status.textContent = '✅ Sistema resetado com sucesso! Todas as contas foram excluídas. Redirecionando...';
-
-  setTimeout(() => {
-    window.location.href = 'index.html';
-  }, 2000);
+  // Também resetar backend (API) para manter sincronização completa
+  fetch('/api/system/reset', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer bot_hospital_xyz_secret_2024'
+    },
+    body: JSON.stringify({ confirm: true })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if(data.success){
+      status.style.display = 'block';
+      status.className = 'success';
+      status.textContent = '✅ Sistema resetado com sucesso (site + backend). Redirecionando...';
+    } else {
+      status.style.display = 'block';
+      status.className = 'error';
+      status.textContent = '⚠️ Ação local concluída, mas falhou o reset no backend: ' + (data.error || 'erro desconhecido');
+    }
+    setTimeout(() => { window.location.href = 'index.html'; }, 2200);
+  })
+  .catch(err => {
+    console.error('Erro reset backend', err);
+    status.style.display = 'block';
+    status.className = 'error';
+    status.textContent = '⚠️ Reset local ok, mas não foi possível contatar o backend. Checar log do servidor.';
+    setTimeout(() => { window.location.href = 'index.html'; }, 2500);
+  });
 });
 </script>
 </body>
